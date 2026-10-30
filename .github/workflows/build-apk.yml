@@ -13,7 +13,7 @@ jobs:
     - name: Checkout del código
       uses: actions/checkout@v4
 
-    - name: Configurar Node.js 22 (Requerido por Capacitor)
+    - name: Configurar Node.js 22
       uses: actions/setup-node@v4
       with:
         node-version: '22'
@@ -30,9 +30,6 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-
-    - name: Configurar Android SDK
-      uses: android-actions/setup-android@v3
 
     - name: Dar permisos a Gradle
       run: chmod +x android/gradlew
