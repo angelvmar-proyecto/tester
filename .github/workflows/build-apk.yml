@@ -30,6 +30,16 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+        cache: 'gradle'
+
+    - name: Configurar variables de entorno de Android
+      run: |
+        echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+        echo "sdk.dir=/usr/local/lib/android/sdk" > android/local.properties
+
+    - name: Aceptar licencias de Android SDK
+      run: |
+        yes | sdkmanager --licenses || true
 
     - name: Dar permisos a Gradle
       run: chmod +x android/gradlew
@@ -42,3 +52,10 @@ jobs:
       with:
         name: TraductorVentasPro-APK
         path: android/app/build/outputs/apk/debug/app-debug.apk
+        
+    - name: Subir reporte de errores si falla (Para debugging)
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Gradle-Error-Report
+        path: android/build/reports/problems/problems-report.html
