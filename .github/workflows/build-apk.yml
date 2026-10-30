@@ -19,10 +19,12 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
-    - name: Instalar dependencias de Node
-      run: npm install
+    - name: Instalar dependencias y Capacitor CLI
+      run: |
+        npm install
+        npm install -D @capacitor/cli @capacitor/core @capacitor/android
 
-    - name: Sincronizar Capacitor (Genera archivos faltantes de Android)
+    - name: Sincronizar Capacitor (Genera archivos de Android)
       run: npx cap sync android
 
     - name: Configurar JDK 17
