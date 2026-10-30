@@ -40,7 +40,7 @@
 <body>
     <div class="header">
         <h1>🎙️ Ventas Pro</h1>
-        <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">🌙</button>
+        <button class="btn-icon" id="themeBtn">🌙</button>
     </div>
     <div class="card">
         <div class="controls">
@@ -50,41 +50,40 @@
         </div>
         <textarea id="inputText" placeholder="Escribe o toca el micrófono..."></textarea>
         <div class="controls" style="margin-top:10px">
-            <button class="btn btn-danger" onclick="startDictation()">🎤 Voz</button>
-            <button class="btn btn-primary" onclick="translateText()">🔄 Traducir</button>
+            <button class="btn btn-danger" id="btnMic">🎤 Voz</button>
+            <button class="btn btn-primary" id="btnTranslate">🔄 Traducir</button>
         </div>
         <textarea id="outputText" readonly placeholder="Traducción..."></textarea>
         <div class="controls" style="margin-top:10px">
-            <button class="btn btn-success" onclick="speakText('target')">🔊 Escuchar</button>
-            <button class="btn btn-secondary" onclick="copyText()">📋 Copiar</button>
+            <button class="btn btn-success" id="btnSpeak">🔊 Escuchar</button>
+            <button class="btn btn-secondary" id="btnCopy">📋 Copiar</button>
         </div>
     </div>
     <div class="card">
-        <input type="text" id="searchInput" placeholder="🔍 Buscar frase..." oninput="filterPhrases()">
+        <input type="text" id="searchInput" placeholder="🔍 Buscar frase...">
         <div class="tabs" id="categoryTabs">
-            <button class="tab active" onclick="setCategory('all', this)">📋 Todas</button>
-            <button class="tab" onclick="setCategory('licores', this)">🥃 Licores</button>
-            <button class="tab" onclick="setCategory('perfumes', this)">🌸 Perfumes</button>
-            <button class="tab" onclick="setCategory('cosmeticos', this)">💄 Cosméticos</button>
-            <button class="tab" onclick="setCategory('skincare', this)">🧴 Skincare</button>
-            <button class="tab" onclick="setCategory('moda', this)">👗 Moda</button>
-            <button class="tab" onclick="setCategory('calzado', this)">👟 Calzado</button>
-            <button class="tab" onclick="setCategory('tech', this)">📱 Tech</button>
-            <button class="tab" onclick="setCategory('hogar', this)">🏠 Hogar</button>
-            <button class="tab" onclick="setCategory('joyeria', this)">💍 Joyería</button>
-            <button class="tab" onclick="setCategory('salud', this)">💊 Salud</button>
-            <button class="tab" onclick="setCategory('bienvenida', this)">👋 Bienvenida</button>
-            <button class="tab" onclick="setCategory('objeciones', this)">🛡️ Objeciones</button>
-            <button class="tab" onclick="setCategory('cierre', this)">🤝 Cierre</button>
-            <button class="tab" onclick="setCategory('upselling', this)">📈 Upselling</button>
-            <button class="tab" onclick="setCategory('postventa', this)">🔄 Postventa</button>
-            <button class="tab" onclick="setCategory('fav', this)" style="color:#f59e0b">⭐ Favoritos</button>
+            <button class="tab active" data-cat="all">📋 Todas</button>
+            <button class="tab" data-cat="licores">🥃 Licores</button>
+            <button class="tab" data-cat="perfumes">🌸 Perfumes</button>
+            <button class="tab" data-cat="cosmeticos">💄 Cosméticos</button>
+            <button class="tab" data-cat="skincare">🧴 Skincare</button>
+            <button class="tab" data-cat="moda">👗 Moda</button>
+            <button class="tab" data-cat="calzado">👟 Calzado</button>
+            <button class="tab" data-cat="tech">📱 Tech</button>
+            <button class="tab" data-cat="hogar">🏠 Hogar</button>
+            <button class="tab" data-cat="joyeria">💍 Joyería</button>
+            <button class="tab" data-cat="salud">💊 Salud</button>
+            <button class="tab" data-cat="bienvenida">👋 Bienvenida</button>
+            <button class="tab" data-cat="objeciones">🛡️ Objeciones</button>
+            <button class="tab" data-cat="cierre">🤝 Cierre</button>
+            <button class="tab" data-cat="upselling">📈 Upselling</button>
+            <button class="tab" data-cat="postventa">🔄 Postventa</button>
+            <button class="tab" data-cat="fav" style="color:#f59e0b">⭐ Favoritos</button>
         </div>
         <div id="phrasesList"></div>
     </div>
     <div class="toast" id="toast">Mensaje</div>
 
-    <!-- Cargar los 5 archivos de datos -->
     <script src="data1.js"></script>
     <script src="data2.js"></script>
     <script src="data3.js"></script>
@@ -92,17 +91,20 @@
     <script src="data5.js"></script>
     
     <script>
-        // Unir todas las bases de datos en una sola
-        const phrasesDB = [
-            ...(typeof db1 !== 'undefined' ? db1 : []),
-            ...(typeof db2 !== 'undefined' ? db2 : []),
-            ...(typeof db3 !== 'undefined' ? db3 : []),
-            ...(typeof db4 !== 'undefined' ? db4 : []),
-            ...(typeof db5 !== 'undefined' ? db5 : [])
-        ];
+        // Unir las 5 bases de datos
+        const phrasesDB = []
+            .concat(typeof db1 !== 'undefined' ? db1 : [])
+            .concat(typeof db2 !== 'undefined' ? db2 : [])
+            .concat(typeof db3 !== 'undefined' ? db3 : [])
+            .concat(typeof db4 !== 'undefined' ? db4 : [])
+            .concat(typeof db5 !== 'undefined' ? db5 : []);
 
         let currentCat = 'all';
         let favorites = JSON.parse(localStorage.getItem('favPhrases') || '[]');
+
+        // Mapa para acceder rápido por ID
+        const phrasesMap = {};
+        phrasesDB.forEach(p => { phrasesMap[p.i] = p; });
 
         function renderPhrases() {
             const list = document.getElementById('phrasesList');
@@ -111,49 +113,110 @@
             let filtered = phrasesDB;
             
             if (currentCat === 'fav') {
-                filtered = filtered.filter(p => favorites.includes(p.i));
-                if (filtered.length === 0) list.innerHTML = '<p style="text-align:center;color:var(--text-sec);padding:20px">No hay favoritos aún. Toca la ⭐ en una frase.</p>';
+                filtered = phrasesDB.filter(p => favorites.includes(p.i));
+                if (filtered.length === 0) {
+                    list.innerHTML = '<p style="text-align:center;color:var(--text-sec);padding:20px">No hay favoritos aún. Toca la ⭐ en una frase.</p>';
+                    return;
+                }
             } else if (currentCat !== 'all') {
-                filtered = filtered.filter(p => p.c === currentCat);
+                filtered = phrasesDB.filter(p => p.c === currentCat);
             }
             
-            if (search) filtered = filtered.filter(p => p.e.toLowerCase().includes(search) || p.n.toLowerCase().includes(search));
+            if (search) {
+                filtered = filtered.filter(p => 
+                    p.e.toLowerCase().includes(search) || 
+                    p.n.toLowerCase().includes(search)
+                );
+            }
 
+            // Renderizado usando data-attributes (sin comillas en onclick)
+            const fragment = document.createDocumentFragment();
             filtered.forEach(p => {
                 const isFav = favorites.includes(p.i);
                 const div = document.createElement('div');
                 div.className = 'phrase-item';
-                div.innerHTML = `
-                    <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(${p.i})">${isFav ? '★' : '☆'}</button>
-                    <div class="phrase-es">🇪🇸 ${p.e}</div>
-                    <div class="phrase-en">🇺🇸 ${p.n}</div>
-                    <div class="phrase-actions">
-                        <button class="btn btn-danger" onclick="speakPhrase('${p.e.replace(/'/g, "\\'")}', 'es-ES')">🔊 ES</button>
-                        <button class="btn btn-success" onclick="speakPhrase('${p.n.replace(/'/g, "\\'")}', 'en-US')">🔊 EN</button>
-                        <button class="btn btn-secondary" onclick="loadToTranslator('${p.e.replace(/'/g, "\\'")}')">✏️ Usar</button>
-                    </div>`;
-                list.appendChild(div);
+                div.dataset.id = p.i;
+                
+                div.innerHTML = 
+                    '<button class="fav-btn ' + (isFav ? 'active' : '') + '" data-action="fav">⭐</button>' +
+                    '<div class="phrase-es">🇪🇸 ' + escapeHtml(p.e) + '</div>' +
+                    '<div class="phrase-en">🇺🇸 ' + escapeHtml(p.n) + '</div>' +
+                    '<div class="phrase-actions">' +
+                    '<button class="btn btn-danger" data-action="speak-es">🔊 ES</button>' +
+                    '<button class="btn btn-success" data-action="speak-en">🔊 EN</button>' +
+                    '<button class="btn btn-secondary" data-action="use">✏️ Usar</button>' +
+                    '</div>';
+                
+                fragment.appendChild(div);
             });
+            list.appendChild(fragment);
         }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Event delegation: un solo listener para todos los botones de frases
+        document.getElementById('phrasesList').addEventListener('click', function(e) {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            
+            const item = btn.closest('.phrase-item');
+            const id = parseInt(item.dataset.id);
+            const phrase = phrasesMap[id];
+            if (!phrase) return;
+            
+            const action = btn.dataset.action;
+            
+            if (action === 'fav') {
+                toggleFav(id);
+            } else if (action === 'speak-es') {
+                speakPhrase(phrase.e, 'es-ES');
+            } else if (action === 'speak-en') {
+                speakPhrase(phrase.n, 'en-US');
+            } else if (action === 'use') {
+                loadToTranslator(phrase.e);
+            }
+        });
+
         function toggleFav(id) {
-            if (favorites.includes(id)) { favorites = favorites.filter(f => f !== id); showToast('Eliminado de favoritos'); } 
-            else { favorites.push(id); showToast('Guardado en favoritos ⭐'); }
+            if (favorites.includes(id)) { 
+                favorites = favorites.filter(f => f !== id); 
+                showToast('Eliminado de favoritos'); 
+            } else { 
+                favorites.push(id); 
+                showToast('⭐ Guardado en favoritos'); 
+            }
             localStorage.setItem('favPhrases', JSON.stringify(favorites));
             renderPhrases();
         }
-        function setCategory(cat, btn) {
-            currentCat = cat;
+
+        // Tabs de categorías
+        document.getElementById('categoryTabs').addEventListener('click', function(e) {
+            const tab = e.target.closest('.tab');
+            if (!tab) return;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            btn.classList.add('active');
+            tab.classList.add('active');
+            currentCat = tab.dataset.cat;
             renderPhrases();
-        }
-        function filterPhrases() { renderPhrases(); }
+        });
+
+        // Búsqueda
+        document.getElementById('searchInput').addEventListener('input', renderPhrases);
+
         function speakPhrase(text, lang) {
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(text);
-            u.lang = lang; u.rate = 0.9;
+            u.lang = lang; 
+            u.rate = 0.9;
+            u.onend = () => showToast('✅ Listo');
+            u.onerror = (e) => showToast('❌ Error de voz');
             window.speechSynthesis.speak(u);
+            showToast('🔊 Reproduciendo...');
         }
+
         function loadToTranslator(text) {
             document.getElementById('inputText').value = text;
             document.getElementById('sourceLang').value = 'es';
@@ -161,55 +224,103 @@
             translateText();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+
         async function translateText() {
             const text = document.getElementById('inputText').value;
             if (!text) return;
             document.getElementById('outputText').value = "Traduciendo...";
             try {
-                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${document.getElementById('sourceLang').value}|${document.getElementById('targetLang').value}`);
+                const res = await fetch('https://api.mymemory.translated.net/get?q=' + 
+                    encodeURIComponent(text) + '&langpair=' + 
+                    document.getElementById('sourceLang').value + '|' + 
+                    document.getElementById('targetLang').value);
                 const data = await res.json();
                 document.getElementById('outputText').value = data.responseData.translatedText;
-            } catch (e) { document.getElementById('outputText').value = "Error de conexión."; }
+            } catch (e) { 
+                document.getElementById('outputText').value = "Error de conexión."; 
+            }
         }
+
         function startDictation() {
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-                const rec = new SR();
-                rec.lang = document.getElementById('sourceLang').value === 'es' ? 'es-ES' : 'en-US';
-                rec.onresult = (e) => { document.getElementById('inputText').value = e.results[0][0].transcript; translateText(); };
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) { 
+                showToast('❌ Micrófono no soportado en este navegador'); 
+                return; 
+            }
+            const rec = new SR();
+            rec.lang = document.getElementById('sourceLang').value === 'es' ? 'es-ES' : 'en-US';
+            rec.continuous = false;
+            rec.interimResults = false;
+            
+            rec.onstart = () => showToast('🎤 Escuchando...');
+            rec.onresult = (e) => { 
+                document.getElementById('inputText').value = e.results[0][0].transcript; 
+                translateText(); 
+            };
+            rec.onerror = (e) => showToast('❌ Error mic: ' + e.error);
+            rec.onend = () => showToast('🎤 Listo');
+            
+            try {
                 rec.start();
-                showToast('🎤 Escuchando...');
-            } else { showToast('Micrófono no soportado'); }
+            } catch (err) {
+                showToast('❌ No se pudo iniciar el micrófono');
+            }
         }
+
         function speakText(type) {
-            const text = type === 'target' ? document.getElementById('outputText').value : document.getElementById('inputText').value;
-            const lang = type === 'target' ? document.getElementById('targetLang').value : document.getElementById('sourceLang').value;
-            if (!text) return;
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = lang === 'es' ? 'es-ES' : 'en-US';
-            u.rate = 0.9;
-            window.speechSynthesis.speak(u);
+            const text = type === 'target' ? 
+                document.getElementById('outputText').value : 
+                document.getElementById('inputText').value;
+            const lang = type === 'target' ? 
+                document.getElementById('targetLang').value : 
+                document.getElementById('sourceLang').value;
+            if (!text) { showToast('⚠️ No hay texto'); return; }
+            speakPhrase(text, lang === 'es' ? 'es-ES' : 'en-US');
         }
+
         function copyText() {
             const text = document.getElementById('outputText').value;
-            navigator.clipboard.writeText(text).then(() => showToast('📋 Copiado al portapapeles'));
+            if (!text) { showToast('⚠️ No hay texto'); return; }
+            navigator.clipboard.writeText(text)
+                .then(() => showToast('📋 Copiado'))
+                .catch(() => showToast('❌ Error al copiar'));
         }
+
         function showToast(msg) {
             const t = document.getElementById('toast');
             t.textContent = msg;
             t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2500);
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
         }
+
         function toggleTheme() {
             const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
             document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
             localStorage.setItem('theme', isDark ? 'light' : 'dark');
         }
-        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+        // Inicializar listeners de botones principales
+        document.getElementById('themeBtn').addEventListener('click', toggleTheme);
+        document.getElementById('btnMic').addEventListener('click', startDictation);
+        document.getElementById('btnTranslate').addEventListener('click', translateText);
+        document.getElementById('btnSpeak').addEventListener('click', () => speakText('target'));
+        document.getElementById('btnCopy').addEventListener('click', copyText);
+
+        // Tema inicial
+        const savedTheme = localStorage.getItem('theme') || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         document.documentElement.setAttribute('data-theme', savedTheme);
         document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
-        renderPhrases();
+
+        // Renderizar cuando todo esté cargado
+        if (phrasesDB.length > 0) {
+            renderPhrases();
+            showToast('✅ ' + phrasesDB.length + ' frases cargadas');
+        } else {
+            showToast('⚠️ No se cargaron las frases');
+        }
     </script>
 </body>
 </html>
