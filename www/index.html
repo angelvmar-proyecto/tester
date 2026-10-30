@@ -62,24 +62,45 @@
     <div class="card">
         <input type="text" id="searchInput" placeholder="🔍 Buscar frase..." oninput="filterPhrases()">
         <div class="tabs" id="categoryTabs">
-            <button class="tab active" onclick="setCategory('all', this)">Todas</button>
+            <button class="tab active" onclick="setCategory('all', this)">📋 Todas</button>
             <button class="tab" onclick="setCategory('licores', this)">🥃 Licores</button>
             <button class="tab" onclick="setCategory('perfumes', this)">🌸 Perfumes</button>
-            <button class="tab" onclick="setCategory('ventas', this)">💼 Ventas</button>
+            <button class="tab" onclick="setCategory('cosmeticos', this)">💄 Cosméticos</button>
+            <button class="tab" onclick="setCategory('skincare', this)">🧴 Skincare</button>
+            <button class="tab" onclick="setCategory('moda', this)">👗 Moda</button>
+            <button class="tab" onclick="setCategory('calzado', this)">👟 Calzado</button>
+            <button class="tab" onclick="setCategory('tech', this)">📱 Tech</button>
+            <button class="tab" onclick="setCategory('hogar', this)">🏠 Hogar</button>
+            <button class="tab" onclick="setCategory('joyeria', this)">💍 Joyería</button>
+            <button class="tab" onclick="setCategory('salud', this)">💊 Salud</button>
+            <button class="tab" onclick="setCategory('bienvenida', this)">👋 Bienvenida</button>
+            <button class="tab" onclick="setCategory('objeciones', this)">🛡️ Objeciones</button>
+            <button class="tab" onclick="setCategory('cierre', this)">🤝 Cierre</button>
+            <button class="tab" onclick="setCategory('upselling', this)">📈 Upselling</button>
+            <button class="tab" onclick="setCategory('postventa', this)">🔄 Postventa</button>
             <button class="tab" onclick="setCategory('fav', this)" style="color:#f59e0b">⭐ Favoritos</button>
         </div>
         <div id="phrasesList"></div>
     </div>
     <div class="toast" id="toast">Mensaje</div>
+
+    <!-- Cargar los 5 archivos de datos -->
+    <script src="data1.js"></script>
+    <script src="data2.js"></script>
+    <script src="data3.js"></script>
+    <script src="data4.js"></script>
+    <script src="data5.js"></script>
+    
     <script>
+        // Unir todas las bases de datos en una sola
         const phrasesDB = [
-            {id:1, cat:'licores', es:"Este whisky tiene un acabado ahumado perfecto para después de la cena.", en:"This whisky has a smoky finish perfect for after dinner."},
-            {id:2, cat:'licores', es:"¿Busca algo suave o con más carácter para su paladar?", en:"Are you looking for something smooth or with more character for your palate?"},
-            {id:3, cat:'perfumes', es:"Esta fragancia deja una estela inolvidable dondequiera que vaya.", en:"This fragrance leaves an unforgettable trail wherever you go."},
-            {id:4, cat:'perfumes', es:"Es un aroma versátil, perfecto tanto para el día como para la noche.", en:"It is a versatile scent, perfect for both day and night."},
-            {id:5, cat:'ventas', es:"Solo por hoy, llevando dos unidades obtiene un 20% de descuento.", en:"Today only, when you buy two units you get a 20% discount."},
-            {id:6, cat:'ventas', es:"¿Le gustaría que le envuelva esto para regalo sin costo adicional?", en:"Would you like me to gift-wrap this for you at no extra cost?"}
+            ...(typeof db1 !== 'undefined' ? db1 : []),
+            ...(typeof db2 !== 'undefined' ? db2 : []),
+            ...(typeof db3 !== 'undefined' ? db3 : []),
+            ...(typeof db4 !== 'undefined' ? db4 : []),
+            ...(typeof db5 !== 'undefined' ? db5 : [])
         ];
+
         let currentCat = 'all';
         let favorites = JSON.parse(localStorage.getItem('favPhrases') || '[]');
 
@@ -88,25 +109,28 @@
             list.innerHTML = '';
             const search = document.getElementById('searchInput').value.toLowerCase();
             let filtered = phrasesDB;
+            
             if (currentCat === 'fav') {
-                filtered = filtered.filter(p => favorites.includes(p.id));
+                filtered = filtered.filter(p => favorites.includes(p.i));
                 if (filtered.length === 0) list.innerHTML = '<p style="text-align:center;color:var(--text-sec);padding:20px">No hay favoritos aún. Toca la ⭐ en una frase.</p>';
             } else if (currentCat !== 'all') {
-                filtered = filtered.filter(p => p.cat === currentCat);
+                filtered = filtered.filter(p => p.c === currentCat);
             }
-            if (search) filtered = filtered.filter(p => p.es.toLowerCase().includes(search) || p.en.toLowerCase().includes(search));
+            
+            if (search) filtered = filtered.filter(p => p.e.toLowerCase().includes(search) || p.n.toLowerCase().includes(search));
+
             filtered.forEach(p => {
-                const isFav = favorites.includes(p.id);
+                const isFav = favorites.includes(p.i);
                 const div = document.createElement('div');
                 div.className = 'phrase-item';
                 div.innerHTML = `
-                    <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(${p.id})">${isFav ? '★' : '☆'}</button>
-                    <div class="phrase-es">🇪🇸 ${p.es}</div>
-                    <div class="phrase-en">🇺🇸 ${p.en}</div>
+                    <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(${p.i})">${isFav ? '★' : '☆'}</button>
+                    <div class="phrase-es">🇪🇸 ${p.e}</div>
+                    <div class="phrase-en">🇺🇸 ${p.n}</div>
                     <div class="phrase-actions">
-                        <button class="btn btn-danger" onclick="speakPhrase('${p.es.replace(/'/g, "\\'")}', 'es-ES')">🔊 ES</button>
-                        <button class="btn btn-success" onclick="speakPhrase('${p.en.replace(/'/g, "\\'")}', 'en-US')">🔊 EN</button>
-                        <button class="btn btn-secondary" onclick="loadToTranslator('${p.es.replace(/'/g, "\\'")}')">✏️ Usar</button>
+                        <button class="btn btn-danger" onclick="speakPhrase('${p.e.replace(/'/g, "\\'")}', 'es-ES')">🔊 ES</button>
+                        <button class="btn btn-success" onclick="speakPhrase('${p.n.replace(/'/g, "\\'")}', 'en-US')">🔊 EN</button>
+                        <button class="btn btn-secondary" onclick="loadToTranslator('${p.e.replace(/'/g, "\\'")}')">✏️ Usar</button>
                     </div>`;
                 list.appendChild(div);
             });
