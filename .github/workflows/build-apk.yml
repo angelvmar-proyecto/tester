@@ -19,10 +19,8 @@ jobs:
         node-version: '18'
         cache: 'npm'
 
-    - name: Instalar dependencias y Capacitor CLI
-      run: |
-        npm install
-        npm install -D @capacitor/cli @capacitor/core @capacitor/android
+    - name: Instalar dependencias de Node
+      run: npm install
 
     - name: Sincronizar Capacitor (Genera archivos de Android)
       run: npx cap sync android
@@ -33,14 +31,24 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Configurar Android SDK y aceptar licencias
+      uses: android-actions/setup-android@v3
+
     - name: Dar permisos a Gradle
       run: chmod +x android/gradlew
 
-    - name: Compilar APK (Debug)
-      run: cd android && ./gradlew assembleDebug
+    - name: Compilar APK (Debug) con reporte de errores detallado
+      run: cd android && ./gradlew assembleDebug --stacktrace
 
     - name: Subir APK como resultado
       uses: actions/upload-artifact@v4
       with:
         name: TraductorVentasPro-APK
         path: android/app/build/outputs/apk/debug/app-debug.apk
+        
+    - name: Subir reporte de errores si falla (Opcional, para debugging)
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Gradle-Error-Report
+        path: android/build/reports/problems/problems-report.html
