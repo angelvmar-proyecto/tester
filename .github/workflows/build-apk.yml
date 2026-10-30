@@ -13,13 +13,13 @@ jobs:
     - name: Checkout del código
       uses: actions/checkout@v4
 
-    - name: Configurar Node.js
+    - name: Configurar Node.js 22 (Requerido por Capacitor)
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '22'
         cache: 'npm'
 
-    - name: Instalar dependencias (Incluye Capacitor ahora)
+    - name: Instalar dependencias
       run: npm install
 
     - name: Sincronizar Capacitor
