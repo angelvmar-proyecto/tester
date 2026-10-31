@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Traductor Ventas Pro v3.1</title>
+    <title>Traductor Ventas Pro v3.2</title>
     <style>
         :root { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-sec: #64748b; --primary: #2563eb; --danger: #ef4444; --success: #10b981; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         [data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-sec: #94a3b8; --primary: #3b82f6; --border: #334155; --shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
@@ -39,7 +39,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🎙️ Ventas Pro v3.1</h1>
+        <h1>🎙️ Ventas Pro v3.2</h1>
         <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">🌙</button>
     </div>
     <div class="card">
@@ -183,36 +183,47 @@
             }
         }
 
-        // MICRÓFONO NATIVO CON CAPACITOR
-        async function startDictation() {
-            try {
-                const { SpeechRecognition } = await import('@capacitor-community/speech-recognition');
-                
-                // Verificar permisos
-                const permResult = await SpeechRecognition.checkPermissions();
-                if (permResult.microphone !== 'granted') {
-                    await SpeechRecognition.requestPermissions();
-                }
-                
-                const lang = document.getElementById('sourceLang').value === 'es' ? 'es-ES' : 'en-US';
-                
+        // MICRÓFONO NATIVO ANDROID (Web Speech API)
+        function startDictation() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                showToast('⚠️ Tu dispositivo no soporta voz nativa');
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = document.getElementById('sourceLang').value === 'es' ? 'es-ES' : 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = function() {
                 showToast('🎤 Escuchando...');
-                
-                const result = await SpeechRecognition.start({
-                    language: lang,
-                    partialResults: false,
-                    popup: false
-                });
-                
-                if (result.matches && result.matches.length > 0) {
-                    document.getElementById('inputText').value = result.matches[0];
-                    translateText();
-                    showToast('✅ Texto capturado');
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('inputText').value = transcript;
+                showToast('✅ Texto capturado');
+                translateText();
+            };
+
+            recognition.onerror = function(event) {
+                if (event.error === 'not-allowed') {
+                    showToast('⛔ Permiso denegado. Ve a Ajustes > Apps > Traductor > Permisos > Micrófono');
                 } else {
-                    showToast('⚠️ No se detectó voz');
+                    showToast('❌ Error: ' + event.error);
                 }
-            } catch (error) {
-                showToast('❌ Error: ' + error.message);
+            };
+
+            recognition.onend = function() {
+                showToast('🎤 Listo');
+            };
+
+            try {
+                recognition.start();
+            } catch (e) {
+                showToast('⚠️ El micrófono ya está activo');
             }
         }
 
