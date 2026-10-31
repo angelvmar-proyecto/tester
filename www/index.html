@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Traductor Ventas Pro v6.0</title>
+    <title>Traductor Ventas Pro v6.1</title>
     <style>
         :root { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-sec: #64748b; --primary: #2563eb; --danger: #ef4444; --success: #10b981; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         [data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-sec: #94a3b8; --primary: #3b82f6; --border: #334155; --shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
@@ -42,13 +42,12 @@
 </head>
 <body>
     <div class="header">
-        <h1>🎙️ Ventas Pro v6.0</h1>
+        <h1>🎙️ Ventas Pro v6.1</h1>
         <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">🌙</button>
     </div>
 
-    <!-- TRADUCTOR -->
     <div class="card">
-        <div class="audio-status" id="audioStatus">🔊 Audio: Verificando...</div>
+        <div class="audio-status" id="audioStatus">🔊 Inicializando audio...</div>
         <div class="controls">
             <select id="sourceLang">
                 <option value="es">🇪🇸 Español</option>
@@ -86,7 +85,6 @@
         </div>
     </div>
 
-    <!-- BANCO DE FRASES -->
     <div class="card">
         <input type="text" id="searchInput" placeholder="🔍 Buscar frase..." oninput="filterPhrases()">
         <div class="tabs">
@@ -133,40 +131,104 @@
 
         let currentCat = 'all';
         let favorites = JSON.parse(localStorage.getItem('favPhrases') || '[]');
-        let voicesLoaded = false;
-        let ttsReady = false;
+        let ttsEngine = null;
 
-        // ============ INICIALIZACIÓN DE AUDIO ROBUSTA ============
-        function initAudio() {
-            if (!window.speechSynthesis) {
-                document.getElementById('audioStatus').textContent = '❌ Audio no soportado';
+        // ============ INICIALIZAR TTS NATIVO ============
+        async function initTTS() {
+            try {
+                // Intentar cargar el plugin nativo de Capacitor
+                const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
+                ttsEngine = TextToSpeech;
+                document.getElementById('audioStatus').textContent = '🔊 Audio nativo listo';
+                showToast('✅ Audio nativo activado');
+            } catch (e) {
+                // Fallback a speechSynthesis del navegador
+                if (window.speechSynthesis) {
+                    ttsEngine = 'browser';
+                    document.getElementById('audioStatus').textContent = '🔊 Audio navegador listo';
+                    
+                    // Wake-up call
+                    setTimeout(() => {
+                        try {
+                            const wakeUp = new SpeechSynthesisUtterance('');
+                            wakeUp.volume = 0;
+                            window.speechSynthesis.speak(wakeUp);
+                        } catch(err) {}
+                    }, 100);
+                } else {
+                    document.getElementById('audioStatus').textContent = '❌ Audio no disponible';
+                    showToast('❌ Audio no soportado');
+                }
+            }
+        }
+
+        // ============ FUNCIÓN DE AUDIO UNIFICADA ============
+        async function speakText(text, lang) {
+            if (!text) {
+                showToast('⚠️ No hay texto');
                 return;
             }
 
-            // Cargar voces
-            function loadVoices() {
-                const voices = window.speechSynthesis.getVoices();
-                if (voices.length > 0) {
-                    voicesLoaded = true;
-                    ttsReady = true;
-                    document.getElementById('audioStatus').textContent = '🔊 Audio listo (' + voices.length + ' voces)';
+            try {
+                if (ttsEngine && typeof ttsEngine === 'object' && ttsEngine.speak) {
+                    // Usar plugin nativo de Capacitor
+                    const langMap = {
+                        'es-ES': 'es', 'en-US': 'en', 'fr-FR': 'fr', 'de-DE': 'de',
+                        'it-IT': 'it', 'pt-BR': 'pt', 'ru-RU': 'ru', 'ja-JP': 'ja', 'zh-CN': 'zh'
+                    };
+                    
+                    await ttsEngine.speak({
+                        text: text,
+                        lang: langMap[lang] || lang.split('-')[0],
+                        rate: 0.9,
+                        pitch: 1.0,
+                        volume: 1.0
+                    });
+                    showToast('🔊 Reproduciendo...');
+                } else if (ttsEngine === 'browser' && window.speechSynthesis) {
+                    // Fallback a navegador
+                    window.speechSynthesis.cancel();
+                    setTimeout(() => {
+                        const utterance = new SpeechSynthesisUtterance(text);
+                        utterance.lang = lang;
+                        utterance.rate = 0.9;
+                        utterance.pitch = 1.0;
+                        utterance.volume = 1.0;
+                        
+                        const voices = window.speechSynthesis.getVoices();
+                        const voice = voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+                        if (voice) utterance.voice = voice;
+                        
+                        utterance.onstart = () => showToast('🔊 Reproduciendo...');
+                        utterance.onend = () => showToast('✅ Listo');
+                        utterance.onerror = (e) => showToast('❌ Error: ' + e.error);
+                        
+                        window.speechSynthesis.speak(utterance);
+                    }, 50);
+                } else {
+                    showToast('❌ Motor de audio no disponible');
                 }
+            } catch (err) {
+                showToast('❌ Error: ' + err.message);
+                console.error('TTS Error:', err);
             }
-
-            loadVoices();
-            window.speechSynthesis.onvoiceschanged = loadVoices;
-
-            // Wake-up call: reproducir silencio para desbloquear TTS en Android
-            setTimeout(() => {
-                try {
-                    const wakeUp = new SpeechSynthesisUtterance('');
-                    wakeUp.volume = 0;
-                    window.speechSynthesis.speak(wakeUp);
-                } catch(e) {}
-            }, 100);
         }
 
-        // ============ RENDERIZADO DE FRASES ============
+        function speakOutput() {
+            const text = document.getElementById('outputText').value;
+            if (!text || text === 'Traduciendo...' || text === 'Error de conexión') {
+                showToast('⚠️ No hay traducción');
+                return;
+            }
+            const lang = document.getElementById('targetLang').value;
+            const langMap = {
+                'es': 'es-ES', 'en': 'en-US', 'fr': 'fr-FR', 'de': 'de-DE',
+                'it': 'it-IT', 'pt': 'pt-BR', 'ru': 'ru-RU', 'ja': 'ja-JP', 'zh': 'zh-CN'
+            };
+            speakText(text, langMap[lang] || 'en-US');
+        }
+
+        // ============ RENDERIZADO CON EVENT DELEGATION ============
         function renderPhrases() {
             const list = document.getElementById('phrasesList');
             list.innerHTML = '';
@@ -194,8 +256,6 @@
                 const isFav = favorites.includes(p.i);
                 const div = document.createElement('div');
                 div.className = 'phrase-item';
-                
-                // Usar data attributes en lugar de onclick inline para evitar problemas de escape
                 div.innerHTML = 
                     '<button class="fav-btn ' + (isFav ? 'active' : '') + '" data-fav="' + p.i + '">⭐</button>' +
                     '<div class="phrase-es">🇪🇸 ' + escapeHtml(p.e) + '</div>' +
@@ -204,22 +264,19 @@
                     '<button class="btn btn-danger" data-speak-es="' + p.i + '">🔊 ES</button>' +
                     '<button class="btn btn-success" data-speak-en="' + p.i + '">🔊 EN</button>' +
                     '</div>';
-                
                 list.appendChild(div);
             });
 
-            // Agregar event listeners a los botones (event delegation)
+            // Event delegation
             list.onclick = function(e) {
                 const target = e.target;
                 
-                // Botón de favorito
                 if (target.hasAttribute('data-fav')) {
                     const id = parseInt(target.getAttribute('data-fav'));
                     toggleFav(id);
                     return;
                 }
                 
-                // Botón de audio en español
                 if (target.hasAttribute('data-speak-es')) {
                     const id = parseInt(target.getAttribute('data-speak-es'));
                     const phrase = phrasesDB.find(p => p.i === id);
@@ -227,7 +284,6 @@
                     return;
                 }
                 
-                // Botón de audio en inglés
                 if (target.hasAttribute('data-speak-en')) {
                     const id = parseInt(target.getAttribute('data-speak-en'));
                     const phrase = phrasesDB.find(p => p.i === id);
@@ -264,65 +320,6 @@
 
         function filterPhrases() { renderPhrases(); }
 
-        // ============ AUDIO ROBUSTO ============
-        function speakText(text, lang) {
-            if (!text) {
-                showToast('⚠️ No hay texto');
-                return;
-            }
-
-            if (!window.speechSynthesis) {
-                showToast('❌ Audio no soportado');
-                return;
-            }
-
-            // Cancelar audio anterior
-            window.speechSynthesis.cancel();
-            
-            // Pequeño delay para asegurar que el cancel se procese
-            setTimeout(() => {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = lang;
-                utterance.rate = 0.9;
-                utterance.pitch = 1.0;
-                utterance.volume = 1.0;
-                
-                // Seleccionar voz específica si está disponible
-                const voices = window.speechSynthesis.getVoices();
-                const voice = voices.find(v => v.lang.startsWith(lang.split('-')[0]));
-                if (voice) {
-                    utterance.voice = voice;
-                }
-                
-                utterance.onstart = () => showToast('🔊 Reproduciendo...');
-                utterance.onend = () => showToast('✅ Listo');
-                utterance.onerror = (e) => {
-                    showToast('❌ Error: ' + e.error);
-                    console.error('Speech error:', e);
-                };
-                
-                try {
-                    window.speechSynthesis.speak(utterance);
-                } catch (err) {
-                    showToast('❌ Error: ' + err.message);
-                }
-            }, 50);
-        }
-
-        function speakOutput() {
-            const text = document.getElementById('outputText').value;
-            if (!text || text === 'Traduciendo...' || text === 'Error de conexión') {
-                showToast('⚠️ No hay traducción');
-                return;
-            }
-            const lang = document.getElementById('targetLang').value;
-            const langMap = {
-                'es': 'es-ES', 'en': 'en-US', 'fr': 'fr-FR', 'de': 'de-DE',
-                'it': 'it-IT', 'pt': 'pt-BR', 'ru': 'ru-RU', 'ja': 'ja-JP', 'zh': 'zh-CN'
-            };
-            speakText(text, langMap[lang] || 'en-US');
-        }
-
         // ============ TRADUCCIÓN ============
         async function translateText() {
             const text = document.getElementById('inputText').value;
@@ -355,7 +352,7 @@
             }
         }
 
-        // ============ RECONOCIMIENTO DE VOZ ============
+        // ============ MICRÓFONO ============
         function startDictation() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             
@@ -401,7 +398,7 @@
             }
         }
 
-        // ============ AUTO-DETECCIÓN DE IDIOMA ============
+        // ============ AUTO-DETECCIÓN ============
         async function autoDetectAndTranslate() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             
@@ -410,7 +407,6 @@
                 return;
             }
 
-            // Idiomas a probar en orden de probabilidad para aeropuerto
             const languages = ['es-ES', 'en-US', 'fr-FR', 'de-DE', 'it-IT', 'pt-BR', 'ru-RU', 'ja-JP', 'zh-CN'];
             let currentLangIndex = 0;
 
@@ -435,18 +431,13 @@
                     const transcript = result.transcript;
                     const confidence = result.confidence;
 
-                    // Si la confianza es alta (>0.5), aceptamos
                     if (confidence > 0.5) {
                         document.getElementById('inputText').value = transcript;
                         showToast('✅ Detectado: ' + languages[currentLangIndex]);
-                        
-                        // Auto-seleccionar idioma de origen
                         const langCode = languages[currentLangIndex].split('-')[0];
                         document.getElementById('sourceLang').value = langCode;
-                        
                         translateText();
                     } else {
-                        // Baja confianza, probar siguiente idioma
                         currentLangIndex++;
                         tryNextLanguage();
                     }
@@ -458,7 +449,6 @@
                 };
 
                 recognition.onend = () => {
-                    // Si no hay resultado, probar siguiente
                     if (!document.getElementById('inputText').value) {
                         currentLangIndex++;
                         setTimeout(tryNextLanguage, 100);
@@ -509,7 +499,7 @@
         document.documentElement.setAttribute('data-theme', savedTheme);
         document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
         
-        initAudio();
+        initTTS();
         renderPhrases();
     </script>
 </body>
