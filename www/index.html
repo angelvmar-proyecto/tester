@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Traductor Ventas Pro v4.0</title>
+    <title>Traductor Ventas Pro v5.0 Offline</title>
     <style>
         :root { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-sec: #64748b; --primary: #2563eb; --danger: #ef4444; --success: #10b981; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         [data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-sec: #94a3b8; --primary: #3b82f6; --border: #334155; --shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
@@ -22,6 +22,7 @@
         .btn-danger { background: var(--danger); color: white; }
         .btn-success { background: var(--success); color: white; }
         .btn-secondary { background: var(--border); color: var(--text); }
+        .btn-warning { background: #f59e0b; color: white; }
         .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; scrollbar-width: none; }
         .tabs::-webkit-scrollbar { display: none; }
         .tab { padding: 8px 16px; border-radius: 20px; background: var(--card); border: 1px solid var(--border); color: var(--text-sec); white-space: nowrap; cursor: pointer; font-size: 13px; font-weight: 500; }
@@ -35,30 +36,69 @@
         .fav-btn.active { color: #f59e0b; }
         .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--bg); padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: 500; opacity: 0; transition: all 0.3s ease; z-index: 1000; }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        
+        /* Modo Práctica */
+        .practice-mode { text-align: center; padding: 20px; }
+        .practice-phrase { font-size: 1.3rem; font-weight: 600; margin: 20px 0; padding: 20px; background: var(--bg); border-radius: 12px; min-height: 120px; display: flex; align-items: center; justify-content: center; }
+        .practice-controls { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        .practice-controls .btn { flex: 0 0 auto; padding: 15px 25px; font-size: 16px; }
+        .progress-bar { width: 100%; height: 8px; background: var(--border); border-radius: 4px; margin: 15px 0; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--success); transition: width 0.3s; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🎙️ Ventas Pro v4.0</h1>
+        <h1>🎙️ Ventas Pro v5.0</h1>
         <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">🌙</button>
     </div>
-    <div class="card">
+
+    <!-- MODO PRÁCTICA OFFLINE -->
+    <div class="card" id="practiceCard">
+        <h3 style="margin-top:0">🎯 Modo Práctica (Offline)</h3>
+        <p style="color:var(--text-sec);font-size:13px">Practica las frases sin necesidad de internet</p>
+        
         <div class="controls">
-            <select id="sourceLang"><option value="es">🇪🇸 ES</option><option value="en">🇺🇸 EN</option></select>
-            <span style="align-self:center">⇄</span>
-            <select id="targetLang"><option value="en">🇺🇸 EN</option><option value="es">🇪🇸 ES</option></select>
+            <select id="practiceCategory">
+                <option value="all">📋 Todas las categorías</option>
+                <option value="licores">🥃 Licores</option>
+                <option value="perfumes">🌸 Perfumes</option>
+                <option value="cosmeticos">💄 Cosméticos</option>
+                <option value="skincare">🧴 Skincare</option>
+                <option value="moda">👗 Moda</option>
+                <option value="calzado">👟 Calzado</option>
+                <option value="tech">📱 Tech</option>
+                <option value="hogar">🏠 Hogar</option>
+                <option value="joyeria">💍 Joyería</option>
+                <option value="salud">💊 Salud</option>
+                <option value="bienvenida">👋 Bienvenida</option>
+                <option value="objeciones">🛡️ Objeciones</option>
+                <option value="cierre">🤝 Cierre</option>
+                <option value="upselling">📈 Upselling</option>
+                <option value="postventa">🔄 Postventa</option>
+                <option value="fav">⭐ Solo Favoritos</option>
+            </select>
         </div>
-        <textarea id="inputText" placeholder="Escribe o toca el micrófono..."></textarea>
-        <div class="controls" style="margin-top:10px">
-            <button class="btn btn-danger" onclick="startDictation()">🎤 Voz</button>
-            <button class="btn btn-primary" onclick="translateText()">🔄 Traducir</button>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
         </div>
-        <textarea id="outputText" readonly placeholder="Traducción..."></textarea>
-        <div class="controls" style="margin-top:10px">
-            <button class="btn btn-success" onclick="speakText('target')">🔊 Escuchar</button>
-            <button class="btn btn-secondary" onclick="copyText()">📋 Copiar</button>
+
+        <div class="practice-mode">
+            <div class="practice-phrase" id="practicePhrase">
+                Presiona "Iniciar" para comenzar
+            </div>
+            <div class="practice-controls">
+                <button class="btn btn-warning" onclick="startPractice()">▶️ Iniciar</button>
+                <button class="btn btn-success" onclick="speakCurrentPhrase()">🔊 Escuchar</button>
+                <button class="btn btn-primary" onclick="nextPhrase()">⏭️ Siguiente</button>
+            </div>
+            <p style="margin-top:15px;color:var(--text-sec);font-size:13px">
+                <span id="practiceCounter">0</span> frases practicadas
+            </p>
         </div>
     </div>
+
+    <!-- BANCO DE FRASES -->
     <div class="card">
         <input type="text" id="searchInput" placeholder="🔍 Buscar frase..." oninput="filterPhrases()">
         <div class="tabs" id="categoryTabs">
@@ -82,6 +122,7 @@
         </div>
         <div id="phrasesList"></div>
     </div>
+
     <div class="toast" id="toast">Mensaje</div>
 
     <script src="data1.js"></script>
@@ -101,7 +142,98 @@
 
         let currentCat = 'all';
         let favorites = JSON.parse(localStorage.getItem('favPhrases') || '[]');
+        let practicePhrases = [];
+        let currentPracticeIndex = 0;
+        let practiceCount = 0;
 
+        // ============ MODO PRÁCTICA ============
+        function startPractice() {
+            const category = document.getElementById('practiceCategory').value;
+            
+            if (category === 'fav') {
+                practicePhrases = phrasesDB.filter(p => favorites.includes(p.i));
+            } else if (category !== 'all') {
+                practicePhrases = phrasesDB.filter(p => p.c === category);
+            } else {
+                practicePhrases = [...phrasesDB];
+            }
+
+            // Mezclar frases aleatoriamente
+            practicePhrases = practicePhrases.sort(() => Math.random() - 0.5);
+            currentPracticeIndex = 0;
+            practiceCount = 0;
+            
+            if (practicePhrases.length === 0) {
+                showToast('⚠️ No hay frases en esta categoría');
+                return;
+            }
+
+            showToast('✅ Modo práctica iniciado');
+            showCurrentPracticePhrase();
+        }
+
+        function showCurrentPracticePhrase() {
+            if (currentPracticeIndex >= practicePhrases.length) {
+                document.getElementById('practicePhrase').innerHTML = 
+                    '🎉 ¡Práctica completada!<br><small>Presiona Iniciar para comenzar de nuevo</small>';
+                showToast('🎉 ¡Excelente trabajo!');
+                return;
+            }
+
+            const phrase = practicePhrases[currentPracticeIndex];
+            document.getElementById('practicePhrase').innerHTML = 
+                '<div style="width:100%">' +
+                '<div style="margin-bottom:15px">🇪🇸 ' + phrase.e + '</div>' +
+                '<div style="color:var(--text-sec);font-style:italic">🇺🇸 ' + phrase.n + '</div>' +
+                '</div>';
+            
+            updateProgress();
+        }
+
+        function speakCurrentPhrase() {
+            if (practicePhrases.length === 0 || currentPracticeIndex >= practicePhrases.length) {
+                showToast('⚠️ Inicia el modo práctica primero');
+                return;
+            }
+
+            const phrase = practicePhrases[currentPracticeIndex];
+            
+            // Primero español, luego inglés
+            window.speechSynthesis.cancel();
+            
+            const utterEs = new SpeechSynthesisUtterance(phrase.e);
+            utterEs.lang = 'es-ES';
+            utterEs.rate = 0.9;
+            
+            const utterEn = new SpeechSynthesisUtterance(phrase.n);
+            utterEn.lang = 'en-US';
+            utterEn.rate = 0.9;
+            
+            utterEs.onend = () => {
+                setTimeout(() => {
+                    window.speechSynthesis.speak(utterEn);
+                }, 500);
+            };
+            
+            window.speechSynthesis.speak(utterEs);
+            showToast('🔊 Reproduciendo...');
+        }
+
+        function nextPhrase() {
+            if (practicePhrases.length === 0) return;
+            
+            currentPracticeIndex++;
+            practiceCount++;
+            document.getElementById('practiceCounter').textContent = practiceCount;
+            showCurrentPracticePhrase();
+        }
+
+        function updateProgress() {
+            const progress = (currentPracticeIndex / practicePhrases.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // ============ BANCO DE FRASES ============
         function renderPhrases() {
             const list = document.getElementById('phrasesList');
             list.innerHTML = '';
@@ -127,7 +259,7 @@
                     '<div class="phrase-actions">' +
                     '<button class="btn btn-danger" onclick="speakPhrase(\'' + p.e.replace(/'/g, "\\'") + '\', \'es-ES\')">🔊 ES</button>' +
                     '<button class="btn btn-success" onclick="speakPhrase(\'' + p.n.replace(/'/g, "\\'") + '\', \'en-US\')">🔊 EN</button>' +
-                    '<button class="btn btn-secondary" onclick="loadToTranslator(\'' + p.e.replace(/'/g, "\\'") + '\')">✏️ Usar</button>' +
+                    '<button class="btn btn-warning" onclick="speakBoth(\'' + p.e.replace(/'/g, "\\'") + '\', \'' + p.n.replace(/'/g, "\\'") + '\')">🔊 Ambos</button>' +
                     '</div>';
                 list.appendChild(div);
             });
@@ -162,84 +294,24 @@
             window.speechSynthesis.speak(u);
         }
 
-        function loadToTranslator(text) {
-            document.getElementById('inputText').value = text;
-            document.getElementById('sourceLang').value = 'es';
-            document.getElementById('targetLang').value = 'en';
-            translateText();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        async function translateText() {
-            const text = document.getElementById('inputText').value;
-            if (!text) return;
-            document.getElementById('outputText').value = "Traduciendo...";
-            try {
-                const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + document.getElementById('sourceLang').value + '|' + document.getElementById('targetLang').value);
-                const data = await res.json();
-                document.getElementById('outputText').value = data.responseData.translatedText;
-            } catch (e) { 
-                document.getElementById('outputText').value = "Error de conexión."; 
-            }
-        }
-
-        // MICRÓFONO - Usando Capacitor Plugins directamente
-        async function startDictation() {
-            try {
-                // Verificar si Capacitor está disponible
-                if (typeof Capacitor === 'undefined') {
-                    showToast('⚠️ Capacitor no disponible');
-                    return;
-                }
-
-                const { SpeechRecognition } = Capacitor.Plugins;
-                
-                if (!SpeechRecognition) {
-                    showToast('⚠️ Plugin de voz no disponible');
-                    return;
-                }
-
-                // Solicitar permisos
-                const permResult = await SpeechRecognition.checkPermissions();
-                if (permResult.microphone !== 'granted') {
-                    await SpeechRecognition.requestPermissions();
-                }
-
-                const lang = document.getElementById('sourceLang').value === 'es' ? 'es-ES' : 'en-US';
-                
-                showToast('🎤 Escuchando...');
-                
-                const result = await SpeechRecognition.start({
-                    language: lang,
-                    partialResults: false,
-                    popup: false
-                });
-                
-                if (result.matches && result.matches.length > 0) {
-                    document.getElementById('inputText').value = result.matches[0];
-                    showToast('✅ Texto capturado');
-                    translateText();
-                } else {
-                    showToast('⚠️ No se detectó voz');
-                }
-            } catch (error) {
-                showToast('❌ Error: ' + error.message);
-            }
-        }
-
-        function speakText(type) {
-            const text = type === 'target' ? document.getElementById('outputText').value : document.getElementById('inputText').value;
-            const lang = type === 'target' ? document.getElementById('targetLang').value : document.getElementById('sourceLang').value;
-            if (!text) return;
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = lang === 'es' ? 'es-ES' : 'en-US';
-            u.rate = 0.9;
-            window.speechSynthesis.speak(u);
-        }
-
-        function copyText() {
-            const text = document.getElementById('outputText').value;
-            navigator.clipboard.writeText(text).then(() => showToast('📋 Copiado al portapapeles'));
+        function speakBoth(es, en) {
+            window.speechSynthesis.cancel();
+            
+            const utterEs = new SpeechSynthesisUtterance(es);
+            utterEs.lang = 'es-ES';
+            utterEs.rate = 0.9;
+            
+            const utterEn = new SpeechSynthesisUtterance(en);
+            utterEn.lang = 'en-US';
+            utterEn.rate = 0.9;
+            
+            utterEs.onend = () => {
+                setTimeout(() => {
+                    window.speechSynthesis.speak(utterEn);
+                }, 500);
+            };
+            
+            window.speechSynthesis.speak(utterEs);
         }
 
         function showToast(msg) {
