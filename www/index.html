@@ -68,7 +68,7 @@
     <script src="data4.js"></script>
     <script src="data5.js"></script>
     <script src="data6.js"></script>
-    
+
     <script>
         const phrasesDB = [
             ...(typeof db1 !== 'undefined' ? db1 : []),
@@ -87,14 +87,14 @@
             list.innerHTML = '';
             const search = document.getElementById('searchInput').value.toLowerCase();
             let filtered = phrasesDB;
-            
+
             if (currentCat !== 'all') {
                 filtered = filtered.filter(p => p.c === currentCat);
             }
-            
+
             if (search) {
-                filtered = filtered.filter(p => 
-                    p.e.toLowerCase().includes(search) || 
+                filtered = filtered.filter(p =>
+                    p.e.toLowerCase().includes(search) ||
                     p.n.toLowerCase().includes(search)
                 );
             }
@@ -102,7 +102,7 @@
             filtered.forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'phrase-item';
-                div.innerHTML = 
+                div.innerHTML =
                     '<div class="phrase-es">🇪🇸 ' + p.e + '</div>' +
                     '<div class="phrase-en">🇺🇸 ' + p.n + '</div>' +
                     '<div class="controls">' +
@@ -113,12 +113,28 @@
             });
         }
 
-        function speak(text, lang) {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = lang;
-            u.rate = 0.9;
-            window.speechSynthesis.speak(u);
+        async function speak(text, lang) {
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.TextToSpeech) {
+                try {
+                    await window.Capacitor.Plugins.TextToSpeech.speak({
+                        text: text,
+                        lang: lang,
+                        rate: 0.9,
+                        pitch: 1.0,
+                        volume: 1.0
+                    });
+                    return;
+                } catch (e) {
+                    console.warn('TTS nativo falló, intentando web speech:', e);
+                }
+            }
+            if (window.speechSynthesis) {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = lang;
+                u.rate = 0.9;
+                window.speechSynthesis.speak(u);
+            }
         }
 
         function speakText() {
@@ -135,23 +151,47 @@
         async function translateText() {
             const text = document.getElementById('inputText').value;
             if (!text) return;
-            document.getElementById('outputText').value = 'Traduciendo...';
+
+            const output = document.getElementById('outputText');
+            output.value = 'Traduciendo...';
+
+            let source = document.getElementById('sourceLang').value;
+            let target = document.getElementById('targetLang').value;
+
+            const mapLang = (l) => l === 'zh' ? 'zh-CN' : l;
+            source = mapLang(source);
+            target = mapLang(target);
+
             try {
-                const res = await fetch('https://api.mymemory.translated.net/get?q=' + 
-                    encodeURIComponent(text) + '&langpair=' + 
-                    document.getElementById('sourceLang').value + '|' + 
-                    document.getElementById('targetLang').value);
+                const res = await fetch('https://api.mymemory.translated.net/get?q=' +
+                    encodeURIComponent(text) + '&langpair=' + source + '|' + target);
+
+                if (!res.ok) {
+                    throw new Error('HTTP ' + res.status);
+                }
+
                 const data = await res.json();
-                document.getElementById('outputText').value = data.responseData.translatedText;
-            } catch (e) { 
-                document.getElementById('outputText').value = 'Error';
+
+                if (data.responseStatus !== 200 && data.responseStatus !== '200') {
+                    throw new Error('API: ' + (data.responseDetails || 'Error desconocido'));
+                }
+
+                if (!data.responseData || !data.responseData.translatedText) {
+                    throw new Error('Respuesta vacía de la API');
+                }
+
+                output.value = data.responseData.translatedText;
+
+            } catch (e) {
+                console.error('Error traducción:', e);
+                output.value = 'Error: ' + e.message;
             }
         }
 
         function startDictation() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
-                alert('Micrófono no soportado');
+                alert('Micrófono no soportado en este dispositivo');
                 return;
             }
             const recognition = new SpeechRecognition();
