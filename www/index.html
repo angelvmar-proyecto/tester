@@ -2,115 +2,65 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Traductor Ventas Pro v6.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traductor Ventas Pro</title>
     <style>
-        :root { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-sec: #64748b; --primary: #2563eb; --danger: #ef4444; --success: #10b981; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        [data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-sec: #94a3b8; --primary: #3b82f6; --border: #334155; --shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 16px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header h1 { margin: 0; font-size: 1.25rem; font-weight: 700; }
-        .btn-icon { background: var(--card); border: 1px solid var(--border); color: var(--text); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
-        .card { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow); }
-        .controls { display: flex; gap: 8px; margin-bottom: 12px; }
-        select, input, textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 15px; }
-        textarea { height: 80px; resize: none; }
-        .btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; }
-        .btn:active { transform: scale(0.96); }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-success { background: var(--success); color: white; }
-        .btn-secondary { background: var(--border); color: var(--text); }
-        .btn-warning { background: #f59e0b; color: white; }
-        .btn-purple { background: #8b5cf6; color: white; }
-        .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; }
-        .tabs::-webkit-scrollbar { display: none; }
-        .tab { padding: 8px 16px; border-radius: 20px; background: var(--card); border: 1px solid var(--border); white-space: nowrap; cursor: pointer; font-size: 13px; }
-        .tab.active { background: var(--primary); color: white; }
-        .phrase-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; position: relative; }
-        .phrase-es { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--text); border-left: 3px solid var(--primary); padding-left: 10px; }
-        .phrase-en { font-size: 14px; color: var(--text-sec); font-style: italic; margin-bottom: 12px; border-left: 3px solid var(--success); padding-left: 10px; }
-        .phrase-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .phrase-actions .btn { padding: 10px; font-size: 13px; min-width: 80px; }
-        .fav-btn { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--border); }
-        .fav-btn.active { color: #f59e0b; }
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--bg); padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: 500; opacity: 0; transition: all 0.3s ease; z-index: 1000; }
-        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        .audio-status { text-align: center; padding: 8px; background: var(--bg); border-radius: 8px; margin-bottom: 12px; font-size: 13px; color: var(--text-sec); }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 16px; background: #f5f5f5; }
+        .card { background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; margin: 4px; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-success { background: #10b981; color: white; }
+        textarea, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        textarea { height: 80px; }
+        .phrase-item { background: white; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #ddd; }
+        .phrase-es { font-weight: bold; margin-bottom: 6px; }
+        .phrase-en { color: #666; font-style: italic; margin-bottom: 10px; }
+        .controls { display: flex; gap: 8px; flex-wrap: wrap; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🎙️ Ventas Pro v6.1</h1>
-        <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">🌙</button>
-    </div>
-
     <div class="card">
-        <div class="audio-status" id="audioStatus">🔊 Inicializando audio...</div>
-        <div class="controls">
-            <select id="sourceLang">
-                <option value="es">🇪🇸 Español</option>
-                <option value="en">🇺🇸 English</option>
-                <option value="fr">🇫🇷 Français</option>
-                <option value="de">🇩🇪 Deutsch</option>
-                <option value="it">🇮🇹 Italiano</option>
-                <option value="pt">🇵🇹 Português</option>
-                <option value="ru">🇷🇺 Русский</option>
-                <option value="ja">🇯🇵 日本語</option>
-                <option value="zh">🇨🇳 中文</option>
-            </select>
-            <select id="targetLang">
-                <option value="en">🇺🇸 English</option>
-                <option value="es">🇪🇸 Español</option>
-                <option value="fr">🇫🇷 Français</option>
-                <option value="de">🇩🇪 Deutsch</option>
-                <option value="it">🇮🇹 Italiano</option>
-                <option value="pt">🇵🇹 Português</option>
-                <option value="ru">🇷🇺 Русский</option>
-                <option value="ja">🇯🇵 日本語</option>
-                <option value="zh">🇨🇳 中文</option>
-            </select>
-        </div>
-        <textarea id="inputText" placeholder="Escribe o toca el micrófono..."></textarea>
+        <h2>🎙️ Traductor</h2>
+        <select id="sourceLang">
+            <option value="es">Español</option>
+            <option value="en">Inglés</option>
+            <option value="fr">Francés</option>
+            <option value="de">Alemán</option>
+            <option value="it">Italiano</option>
+            <option value="pt">Portugués</option>
+            <option value="ru">Ruso</option>
+            <option value="ja">Japonés</option>
+            <option value="zh">Chino</option>
+        </select>
+        <select id="targetLang">
+            <option value="en">Inglés</option>
+            <option value="es">Español</option>
+            <option value="fr">Francés</option>
+            <option value="de">Alemán</option>
+            <option value="it">Italiano</option>
+            <option value="pt">Portugués</option>
+            <option value="ru">Ruso</option>
+            <option value="ja">Japonés</option>
+            <option value="zh">Chino</option>
+        </select>
+        <textarea id="inputText" placeholder="Escribe o usa el micrófono..."></textarea>
         <div class="controls">
             <button class="btn btn-danger" onclick="startDictation()">🎤 Hablar</button>
-            <button class="btn btn-purple" onclick="autoDetectAndTranslate()">🌐 Auto-Idioma</button>
             <button class="btn btn-primary" onclick="translateText()">🔄 Traducir</button>
         </div>
         <textarea id="outputText" readonly placeholder="Traducción..."></textarea>
         <div class="controls">
-            <button class="btn btn-success" onclick="speakOutput()">🔊 Escuchar</button>
-            <button class="btn btn-secondary" onclick="copyText()">📋 Copiar</button>
+            <button class="btn btn-success" onclick="speakText()">🔊 Escuchar</button>
+            <button class="btn" onclick="copyText()">📋 Copiar</button>
         </div>
     </div>
 
     <div class="card">
-        <input type="text" id="searchInput" placeholder="🔍 Buscar frase..." oninput="filterPhrases()">
-        <div class="tabs">
-            <button class="tab active" onclick="setCategory('all', this)">📋 Todas</button>
-            <button class="tab" onclick="setCategory('licores', this)">🥃 Licores</button>
-            <button class="tab" onclick="setCategory('perfumes', this)">🌸 Perfumes</button>
-            <button class="tab" onclick="setCategory('cosmeticos', this)">💄 Cosméticos</button>
-            <button class="tab" onclick="setCategory('skincare', this)">🧴 Skincare</button>
-            <button class="tab" onclick="setCategory('moda', this)">👗 Moda</button>
-            <button class="tab" onclick="setCategory('calzado', this)">👟 Calzado</button>
-            <button class="tab" onclick="setCategory('tech', this)">📱 Tech</button>
-            <button class="tab" onclick="setCategory('hogar', this)">🏠 Hogar</button>
-            <button class="tab" onclick="setCategory('joyeria', this)">💍 Joyería</button>
-            <button class="tab" onclick="setCategory('salud', this)">💊 Salud</button>
-            <button class="tab" onclick="setCategory('bienvenida', this)">👋 Bienvenida</button>
-            <button class="tab" onclick="setCategory('objeciones', this)">🛡️ Objeciones</button>
-            <button class="tab" onclick="setCategory('cierre', this)">🤝 Cierre</button>
-            <button class="tab" onclick="setCategory('upselling', this)">📈 Upselling</button>
-            <button class="tab" onclick="setCategory('postventa', this)">🔄 Postventa</button>
-            <button class="tab" onclick="setCategory('aeropuerto', this)">✈️ Aeropuerto</button>
-            <button class="tab" onclick="setCategory('fav', this)">⭐ Favoritos</button>
-        </div>
+        <h2>📚 Frases</h2>
+        <input type="text" id="searchInput" placeholder="Buscar..." oninput="filterPhrases()" style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #ddd;border-radius:6px;">
         <div id="phrasesList"></div>
     </div>
-
-    <div class="toast" id="toast">Mensaje</div>
 
     <script src="data1.js"></script>
     <script src="data2.js"></script>
@@ -131,117 +81,14 @@
 
         let currentCat = 'all';
         let favorites = JSON.parse(localStorage.getItem('favPhrases') || '[]');
-        let ttsEngine = null;
 
-        // ============ INICIALIZAR TTS NATIVO ============
-        async function initTTS() {
-            try {
-                // Intentar cargar el plugin nativo de Capacitor
-                const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
-                ttsEngine = TextToSpeech;
-                document.getElementById('audioStatus').textContent = '🔊 Audio nativo listo';
-                showToast('✅ Audio nativo activado');
-            } catch (e) {
-                // Fallback a speechSynthesis del navegador
-                if (window.speechSynthesis) {
-                    ttsEngine = 'browser';
-                    document.getElementById('audioStatus').textContent = '🔊 Audio navegador listo';
-                    
-                    // Wake-up call
-                    setTimeout(() => {
-                        try {
-                            const wakeUp = new SpeechSynthesisUtterance('');
-                            wakeUp.volume = 0;
-                            window.speechSynthesis.speak(wakeUp);
-                        } catch(err) {}
-                    }, 100);
-                } else {
-                    document.getElementById('audioStatus').textContent = '❌ Audio no disponible';
-                    showToast('❌ Audio no soportado');
-                }
-            }
-        }
-
-        // ============ FUNCIÓN DE AUDIO UNIFICADA ============
-        async function speakText(text, lang) {
-            if (!text) {
-                showToast('⚠️ No hay texto');
-                return;
-            }
-
-            try {
-                if (ttsEngine && typeof ttsEngine === 'object' && ttsEngine.speak) {
-                    // Usar plugin nativo de Capacitor
-                    const langMap = {
-                        'es-ES': 'es', 'en-US': 'en', 'fr-FR': 'fr', 'de-DE': 'de',
-                        'it-IT': 'it', 'pt-BR': 'pt', 'ru-RU': 'ru', 'ja-JP': 'ja', 'zh-CN': 'zh'
-                    };
-                    
-                    await ttsEngine.speak({
-                        text: text,
-                        lang: langMap[lang] || lang.split('-')[0],
-                        rate: 0.9,
-                        pitch: 1.0,
-                        volume: 1.0
-                    });
-                    showToast('🔊 Reproduciendo...');
-                } else if (ttsEngine === 'browser' && window.speechSynthesis) {
-                    // Fallback a navegador
-                    window.speechSynthesis.cancel();
-                    setTimeout(() => {
-                        const utterance = new SpeechSynthesisUtterance(text);
-                        utterance.lang = lang;
-                        utterance.rate = 0.9;
-                        utterance.pitch = 1.0;
-                        utterance.volume = 1.0;
-                        
-                        const voices = window.speechSynthesis.getVoices();
-                        const voice = voices.find(v => v.lang.startsWith(lang.split('-')[0]));
-                        if (voice) utterance.voice = voice;
-                        
-                        utterance.onstart = () => showToast('🔊 Reproduciendo...');
-                        utterance.onend = () => showToast('✅ Listo');
-                        utterance.onerror = (e) => showToast('❌ Error: ' + e.error);
-                        
-                        window.speechSynthesis.speak(utterance);
-                    }, 50);
-                } else {
-                    showToast('❌ Motor de audio no disponible');
-                }
-            } catch (err) {
-                showToast('❌ Error: ' + err.message);
-                console.error('TTS Error:', err);
-            }
-        }
-
-        function speakOutput() {
-            const text = document.getElementById('outputText').value;
-            if (!text || text === 'Traduciendo...' || text === 'Error de conexión') {
-                showToast('⚠️ No hay traducción');
-                return;
-            }
-            const lang = document.getElementById('targetLang').value;
-            const langMap = {
-                'es': 'es-ES', 'en': 'en-US', 'fr': 'fr-FR', 'de': 'de-DE',
-                'it': 'it-IT', 'pt': 'pt-BR', 'ru': 'ru-RU', 'ja': 'ja-JP', 'zh': 'zh-CN'
-            };
-            speakText(text, langMap[lang] || 'en-US');
-        }
-
-        // ============ RENDERIZADO CON EVENT DELEGATION ============
         function renderPhrases() {
             const list = document.getElementById('phrasesList');
             list.innerHTML = '';
             const search = document.getElementById('searchInput').value.toLowerCase();
             let filtered = phrasesDB;
             
-            if (currentCat === 'fav') {
-                filtered = filtered.filter(p => favorites.includes(p.i));
-                if (filtered.length === 0) {
-                    list.innerHTML = '<p style="text-align:center;color:var(--text-sec);padding:20px">No hay favoritos aún.</p>';
-                    return;
-                }
-            } else if (currentCat !== 'all') {
+            if (currentCat !== 'all') {
                 filtered = filtered.filter(p => p.c === currentCat);
             }
             
@@ -253,253 +100,77 @@
             }
 
             filtered.forEach(p => {
-                const isFav = favorites.includes(p.i);
                 const div = document.createElement('div');
                 div.className = 'phrase-item';
                 div.innerHTML = 
-                    '<button class="fav-btn ' + (isFav ? 'active' : '') + '" data-fav="' + p.i + '">⭐</button>' +
-                    '<div class="phrase-es">🇪🇸 ' + escapeHtml(p.e) + '</div>' +
-                    '<div class="phrase-en">🇺🇸 ' + escapeHtml(p.n) + '</div>' +
-                    '<div class="phrase-actions">' +
-                    '<button class="btn btn-danger" data-speak-es="' + p.i + '">🔊 ES</button>' +
-                    '<button class="btn btn-success" data-speak-en="' + p.i + '">🔊 EN</button>' +
+                    '<div class="phrase-es">🇪🇸 ' + p.e + '</div>' +
+                    '<div class="phrase-en">🇺🇸 ' + p.n + '</div>' +
+                    '<div class="controls">' +
+                    '<button class="btn btn-danger" onclick="speak(\'' + p.e.replace(/'/g, "\\'") + '\', \'es-ES\')">🔊 ES</button>' +
+                    '<button class="btn btn-success" onclick="speak(\'' + p.n.replace(/'/g, "\\'") + '\', \'en-US\')">🔊 EN</button>' +
                     '</div>';
                 list.appendChild(div);
             });
+        }
 
-            // Event delegation
-            list.onclick = function(e) {
-                const target = e.target;
-                
-                if (target.hasAttribute('data-fav')) {
-                    const id = parseInt(target.getAttribute('data-fav'));
-                    toggleFav(id);
-                    return;
-                }
-                
-                if (target.hasAttribute('data-speak-es')) {
-                    const id = parseInt(target.getAttribute('data-speak-es'));
-                    const phrase = phrasesDB.find(p => p.i === id);
-                    if (phrase) speakText(phrase.e, 'es-ES');
-                    return;
-                }
-                
-                if (target.hasAttribute('data-speak-en')) {
-                    const id = parseInt(target.getAttribute('data-speak-en'));
-                    const phrase = phrasesDB.find(p => p.i === id);
-                    if (phrase) speakText(phrase.n, 'en-US');
-                    return;
-                }
+        function speak(text, lang) {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = lang;
+            u.rate = 0.9;
+            window.speechSynthesis.speak(u);
+        }
+
+        function speakText() {
+            const text = document.getElementById('outputText').value;
+            if (!text) return;
+            const lang = document.getElementById('targetLang').value;
+            const langMap = {
+                'es': 'es-ES', 'en': 'en-US', 'fr': 'fr-FR', 'de': 'de-DE',
+                'it': 'it-IT', 'pt': 'pt-BR', 'ru': 'ru-RU', 'ja': 'ja-JP', 'zh': 'zh-CN'
             };
+            speak(text, langMap[lang] || 'en-US');
         }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function toggleFav(id) {
-            if (favorites.includes(id)) { 
-                favorites = favorites.filter(f => f !== id); 
-                showToast('⭐ Eliminado de favoritos'); 
-            } else { 
-                favorites.push(id); 
-                showToast('⭐ Guardado en favoritos'); 
-            }
-            localStorage.setItem('favPhrases', JSON.stringify(favorites));
-            renderPhrases();
-        }
-
-        function setCategory(cat, btn) {
-            currentCat = cat;
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            btn.classList.add('active');
-            renderPhrases();
-        }
-
-        function filterPhrases() { renderPhrases(); }
-
-        // ============ TRADUCCIÓN ============
         async function translateText() {
             const text = document.getElementById('inputText').value;
-            if (!text) {
-                showToast('⚠️ Escribe algo primero');
-                return;
-            }
-            
+            if (!text) return;
             document.getElementById('outputText').value = 'Traduciendo...';
-            
             try {
-                const sourceLang = document.getElementById('sourceLang').value;
-                const targetLang = document.getElementById('targetLang').value;
-                
                 const res = await fetch('https://api.mymemory.translated.net/get?q=' + 
-                    encodeURIComponent(text) + '&langpair=' + sourceLang + '|' + targetLang);
-                
+                    encodeURIComponent(text) + '&langpair=' + 
+                    document.getElementById('sourceLang').value + '|' + 
+                    document.getElementById('targetLang').value);
                 const data = await res.json();
-                
-                if (data.responseData && data.responseData.translatedText) {
-                    document.getElementById('outputText').value = data.responseData.translatedText;
-                    showToast('✅ Traducido');
-                } else {
-                    document.getElementById('outputText').value = 'Error en la traducción';
-                    showToast('❌ Error en traducción');
-                }
+                document.getElementById('outputText').value = data.responseData.translatedText;
             } catch (e) { 
-                document.getElementById('outputText').value = 'Error de conexión';
-                showToast('❌ Sin conexión');
+                document.getElementById('outputText').value = 'Error';
             }
         }
 
-        // ============ MICRÓFONO ============
         function startDictation() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            
             if (!SpeechRecognition) {
-                showToast('❌ Micrófono no soportado');
+                alert('Micrófono no soportado');
                 return;
             }
-
             const recognition = new SpeechRecognition();
             recognition.lang = document.getElementById('sourceLang').value === 'es' ? 'es-ES' : 'en-US';
-            recognition.continuous = false;
-            recognition.interimResults = false;
-
-            recognition.onstart = () => {
-                showToast('🎤 Escuchando...');
-                document.getElementById('inputText').placeholder = '🎤 Habla ahora...';
-            };
-
             recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('inputText').value = transcript;
-                document.getElementById('inputText').placeholder = 'Escribe o toca el micrófono...';
-                showToast('✅ Texto capturado');
+                document.getElementById('inputText').value = event.results[0][0].transcript;
                 translateText();
             };
-
-            recognition.onerror = (event) => {
-                let errorMsg = 'Error: ' + event.error;
-                if (event.error === 'not-allowed') {
-                    errorMsg = '⛔ Permiso denegado';
-                }
-                showToast(errorMsg);
-            };
-
-            recognition.onend = () => {
-                document.getElementById('inputText').placeholder = 'Escribe o toca el micrófono...';
-            };
-
-            try {
-                recognition.start();
-            } catch (e) {
-                showToast('⚠️ El micrófono ya está activo');
-            }
-        }
-
-        // ============ AUTO-DETECCIÓN ============
-        async function autoDetectAndTranslate() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            
-            if (!SpeechRecognition) {
-                showToast('❌ Micrófono no soportado');
-                return;
-            }
-
-            const languages = ['es-ES', 'en-US', 'fr-FR', 'de-DE', 'it-IT', 'pt-BR', 'ru-RU', 'ja-JP', 'zh-CN'];
-            let currentLangIndex = 0;
-
-            function tryNextLanguage() {
-                if (currentLangIndex >= languages.length) {
-                    showToast('❌ No se detectó el idioma');
-                    return;
-                }
-
-                const recognition = new SpeechRecognition();
-                recognition.lang = languages[currentLangIndex];
-                recognition.continuous = false;
-                recognition.interimResults = false;
-                recognition.maxAlternatives = 1;
-
-                recognition.onstart = () => {
-                    showToast('🎤 Probando ' + languages[currentLangIndex] + '...');
-                };
-
-                recognition.onresult = (event) => {
-                    const result = event.results[0][0];
-                    const transcript = result.transcript;
-                    const confidence = result.confidence;
-
-                    if (confidence > 0.5) {
-                        document.getElementById('inputText').value = transcript;
-                        showToast('✅ Detectado: ' + languages[currentLangIndex]);
-                        const langCode = languages[currentLangIndex].split('-')[0];
-                        document.getElementById('sourceLang').value = langCode;
-                        translateText();
-                    } else {
-                        currentLangIndex++;
-                        tryNextLanguage();
-                    }
-                };
-
-                recognition.onerror = () => {
-                    currentLangIndex++;
-                    tryNextLanguage();
-                };
-
-                recognition.onend = () => {
-                    if (!document.getElementById('inputText').value) {
-                        currentLangIndex++;
-                        setTimeout(tryNextLanguage, 100);
-                    }
-                };
-
-                try {
-                    recognition.start();
-                } catch (e) {
-                    currentLangIndex++;
-                    tryNextLanguage();
-                }
-            }
-
-            tryNextLanguage();
+            recognition.onerror = (event) => alert('Error: ' + event.error);
+            recognition.start();
         }
 
         function copyText() {
             const text = document.getElementById('outputText').value;
-            if (!text || text === 'Traduciendo...' || text === 'Error de conexión') {
-                showToast('⚠️ No hay texto');
-                return;
-            }
-            
-            navigator.clipboard.writeText(text)
-                .then(() => showToast('📋 Copiado'))
-                .catch(() => showToast('❌ Error al copiar'));
+            navigator.clipboard.writeText(text);
         }
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            clearTimeout(window._toastTimer);
-            window._toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
-        }
+        function filterPhrases() { renderPhrases(); }
 
-        function toggleTheme() {
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
-            document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
-            localStorage.setItem('theme', isDark ? 'light' : 'dark');
-        }
-
-        // Inicializar
-        const savedTheme = localStorage.getItem('theme') || 
-            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
-        
-        initTTS();
         renderPhrases();
     </script>
 </body>
