@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Traductor de Apoyo</title>
+    <title>Asistente de Ventas</title>
     <style>
         :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --text-sec:#64748b; --primary:#2563eb; --danger:#ef4444; --success:#10b981; --border:#e2e8f0; --shadow:0 4px 6px -1px rgba(0,0,0,.1); --accent:#8b5cf6; --warn:#f59e0b; }
         [data-theme="dark"] { --bg:#0f172a; --card:#1e293b; --text:#f1f5f9; --text-sec:#94a3b8; --primary:#3b82f6; --border:#334155; --shadow:0 4px 6px -1px rgba(0,0,0,.5); }
@@ -63,7 +63,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🎙️ Traductor de Apoyo</h1>
+        <div><h1 style="margin-bottom:2px;">💼 Asistente de Ventas</h1><div style="font-size:11px;color:var(--text-sec);">por MAR Caribe</div></div>
         <div style="display:flex;gap:8px;">
             <button class="btn-icon" onclick="openAbout()" title="Acerca de">ℹ️</button>
             <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">🌙</button>
@@ -121,7 +121,7 @@
         <button class="btn btn-secondary" id="loadMoreBtn" onclick="loadMore()" style="display:none;margin-top:10px;">Cargar más</button>
     </div>
 
-    <div class="credit">Desarrollado por <strong>MAR Caribe</strong></div>
+    
 
     <div class="toast" id="toast">Mensaje</div>
 
@@ -146,7 +146,7 @@
         <div class="modal">
             <h3>ℹ️ Acerca de</h3>
             <p style="font-size:14px;line-height:1.6;">
-                <strong>Traductor de Apoyo</strong><br>
+                <strong>Asistente de Ventas</strong><br>
                 Herramienta de apoyo para promotores y turistas.<br><br>
                 Desarrollado por <strong>MAR Caribe</strong><br>
                 Versión 7.0
@@ -195,7 +195,7 @@
         ];
 
         const CATEGORIES = [
-            { id:'all',         label:'📋 Todas' },
+            
             { id:'licores',     label:'🥃 Licores' },
             { id:'perfumes',    label:'🌸 Perfumes' },
             { id:'cosmeticos',  label:'💄 Cosméticos' },
@@ -238,7 +238,7 @@
             ]
         };
 
-        let currentCat = 'all';
+        let currentCat = 'licores';
         let currentSub = 'all';
         let favorites = JSON.parse(localStorage.getItem('favPhrases') || '[]');
         let customPhrases = JSON.parse(localStorage.getItem('customPhrases') || '[]');
@@ -348,24 +348,53 @@
         function startDictation() {
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SR) { showToast('❌ Micrófono no soportado'); return; }
+            const btn = event.target.closest('button');
+            const oldText = btn.innerHTML;
             const rec = new SR();
             rec.lang = langMap(document.getElementById('sourceLang').value);
+            
+            rec.onstart = () => {
+                btn.innerHTML = '🎙️ Escuchando...';
+                btn.style.background = '#f59e0b';
+            };
+            
             rec.onresult = (e) => {
                 document.getElementById('inputText').value = e.results[0][0].transcript;
                 showToast('✅ Texto capturado');
                 translateText();
             };
-            rec.onerror = (e) => showToast('❌ ' + e.error);
+            
+            rec.onerror = (e) => { 
+                if (e.error !== 'aborted') showToast('❌ Error: ' + e.error); 
+            };
+            
+            rec.onend = () => {
+                btn.innerHTML = oldText;
+                btn.style.background = '#ef4444';
+            };
+            
             try { rec.start(); } catch(e){ showToast('⚠️ Micrófono activo'); }
+        }
         }
 
         function autoDetectAndTranslate() {
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SR) { showToast('❌ Micrófono no soportado'); return; }
+            const btn = event.target.closest('button');
+            const oldText = btn.innerHTML;
             const langs = ['es-ES','en-US','fr-FR','de-DE','it-IT','pt-BR','ru-RU','ja-JP','zh-CN'];
             let i = 0;
+            
+            btn.innerHTML = '🌐 Escuchando...';
+            btn.style.background = '#f59e0b';
+            
             function next() {
-                if (i >= langs.length) { showToast('❌ Idioma no detectado'); return; }
+                if (i >= langs.length) { 
+                    showToast('❌ Idioma no detectado'); 
+                    btn.innerHTML = oldText;
+                    btn.style.background = '#8b5cf6';
+                    return; 
+                }
                 const rec = new SR();
                 rec.lang = langs[i];
                 rec.onresult = (e) => {
@@ -375,6 +404,17 @@
                         showToast('✅ ' + langs[i]);
                         translateText();
                     } else { i++; next(); }
+                };
+                rec.onerror = () => { i++; next(); };
+                try { rec.start(); } catch(e){ i++; next(); }
+            }
+            next();
+            
+            setTimeout(() => {
+                btn.innerHTML = oldText;
+                btn.style.background = '#8b5cf6';
+            }, 10000);
+        }
                 };
                 rec.onerror = () => { i++; next(); };
                 try { rec.start(); } catch(e){ i++; next(); }
@@ -412,11 +452,7 @@
             const subs = SUBTABS[currentCat];
             if (!subs) { c.style.display = 'none'; return; }
             c.style.display = 'flex';
-            const allBtn = document.createElement('button');
-            allBtn.className = 'subtab' + (currentSub === 'all' ? ' active' : '');
-            allBtn.textContent = 'Todos';
-            allBtn.onclick = () => { currentSub = 'all'; visibleCount = 50; buildSubtabs(); renderPhrases(); };
-            c.appendChild(allBtn);
+            
             subs.forEach(sub => {
                 const b = document.createElement('button');
                 b.className = 'subtab' + (currentSub === sub.id ? ' active' : '');
