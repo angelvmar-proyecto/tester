@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Traductor Ventas Pro</string>
-    <string name="title_activity_main">Traductor Ventas Pro</string>
+    <string name="app_name">Traductor de Apoyo</string>
+    <string name="title_activity_main">Traductor de Apoyo</string>
     <string name="package_name">com.angelvmar.traductor</string>
     <string name="custom_url_scheme">com.angelvmar.traductor</string>
 </resources>

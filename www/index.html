@@ -3,54 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Traductor Ventas Pro</title>
+    <title>Traductor de Apoyo</title>
     <style>
-        :root { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-sec: #64748b; --primary: #2563eb; --danger: #ef4444; --success: #10b981; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        [data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-sec: #94a3b8; --primary: #3b82f6; --border: #334155; --shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 16px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header h1 { margin: 0; font-size: 1.25rem; font-weight: 700; }
-        .btn-icon { background: var(--card); border: 1px solid var(--border); color: var(--text); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
-        .card { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow); }
-        .controls { display: flex; gap: 8px; margin-bottom: 12px; }
-        select, input, textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 15px; }
-        textarea { height: 80px; resize: none; }
-        .btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; }
-        .btn:active { transform: scale(0.96); }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-success { background: var(--success); color: white; }
-        .btn-secondary { background: var(--border); color: var(--text); }
-        .btn-warning { background: #f59e0b; color: white; }
-        .btn-purple { background: #8b5cf6; color: white; }
-        .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; }
-        .tabs::-webkit-scrollbar { display: none; }
-        .tab { padding: 8px 16px; border-radius: 20px; background: var(--card); border: 1px solid var(--border); white-space: nowrap; cursor: pointer; font-size: 13px; }
-        .tab.active { background: var(--primary); color: white; }
-        .phrase-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; position: relative; }
-        .phrase-es { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--text); border-left: 3px solid var(--primary); padding-left: 10px; padding-right: 40px; }
-        .phrase-en { font-size: 14px; color: var(--text-sec); font-style: italic; margin-bottom: 12px; border-left: 3px solid var(--success); padding-left: 10px; }
-        .phrase-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .phrase-actions .btn { padding: 10px; font-size: 13px; min-width: 60px; flex: none; }
-        .fav-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--border); padding: 0; width: 32px; height: 32px; }
-        .fav-btn.active { color: #f59e0b; }
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--bg); padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: 500; opacity: 0; transition: all 0.3s ease; z-index: 1000; max-width: 90%; text-align: center; }
-        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        .audio-status { text-align: center; padding: 8px; background: var(--bg); border-radius: 8px; margin-bottom: 12px; font-size: 13px; color: var(--text-sec); }
-        .empty-msg { text-align: center; padding: 30px; color: var(--text-sec); font-size: 14px; }
-        .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
-        .modal-bg.show { display: flex; }
-        .modal { background: var(--card); border-radius: 16px; padding: 20px; width: 100%; max-width: 400px; }
-        .modal h3 { margin: 0 0 16px 0; font-size: 1.1rem; }
-        .modal label { display: block; font-size: 13px; color: var(--text-sec); margin-top: 10px; margin-bottom: 4px; }
-        .modal .btn { margin-top: 14px; }
+        :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --text-sec:#64748b; --primary:#2563eb; --danger:#ef4444; --success:#10b981; --border:#e2e8f0; --shadow:0 4px 6px -1px rgba(0,0,0,.1); --accent:#8b5cf6; --warn:#f59e0b; }
+        [data-theme="dark"] { --bg:#0f172a; --card:#1e293b; --text:#f1f5f9; --text-sec:#94a3b8; --primary:#3b82f6; --border:#334155; --shadow:0 4px 6px -1px rgba(0,0,0,.5); }
+        * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--text); margin:0; padding:16px 16px 90px 16px; }
+        .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+        .header h1 { margin:0; font-size:1.15rem; font-weight:700; }
+        .btn-icon { background:var(--card); border:1px solid var(--border); color:var(--text); width:40px; height:40px; border-radius:50%; cursor:pointer; font-size:1.2rem; }
+        .card { background:var(--card); border-radius:16px; padding:14px; margin-bottom:14px; box-shadow:var(--shadow); }
+        .controls { display:flex; gap:8px; margin-bottom:10px; }
+        select,input,textarea { width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:15px; }
+        textarea { height:70px; resize:none; }
+        .btn { flex:1; padding:12px; border-radius:10px; border:none; font-weight:600; cursor:pointer; font-size:13px; }
+        .btn:active { transform:scale(.96); }
+        .btn-primary { background:var(--primary); color:#fff; }
+        .btn-danger { background:var(--danger); color:#fff; }
+        .btn-success { background:var(--success); color:#fff; }
+        .btn-secondary { background:var(--border); color:var(--text); }
+        .btn-warning { background:var(--warn); color:#fff; }
+        .btn-purple { background:var(--accent); color:#fff; }
+        .tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px; }
+        .tabs::-webkit-scrollbar { display:none; }
+        .tab { padding:7px 14px; border-radius:20px; background:var(--card); border:1px solid var(--border); white-space:nowrap; cursor:pointer; font-size:12px; color:var(--text); }
+        .tab.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+        .subtabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:10px; }
+        .subtabs::-webkit-scrollbar { display:none; }
+        .subtab { padding:5px 12px; border-radius:14px; background:var(--bg); border:1px solid var(--border); white-space:nowrap; cursor:pointer; font-size:11px; color:var(--text-sec); }
+        .subtab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+        .phrase-item { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:10px; position:relative; }
+        .phrase-es { font-size:14px; font-weight:600; margin-bottom:6px; border-left:3px solid var(--primary); padding-left:8px; padding-right:36px; }
+        .phrase-en { font-size:13px; color:var(--text-sec); font-style:italic; margin-bottom:10px; border-left:3px solid var(--success); padding-left:8px; }
+        .phrase-en.hidden { display:none; }
+        .phrase-actions { display:flex; gap:6px; flex-wrap:wrap; }
+        .phrase-actions .btn { padding:9px 10px; font-size:12px; flex:none; min-width:0; }
+        .fav-btn { position:absolute; top:8px; right:8px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--border); padding:0; width:30px; height:30px; }
+        .fav-btn.active { color:var(--warn); }
+        .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--text); color:var(--bg); padding:11px 22px; border-radius:25px; font-size:13px; font-weight:500; opacity:0; transition:all .3s; z-index:1000; max-width:90%; text-align:center; }
+        .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+        .audio-status { text-align:center; padding:6px; background:var(--bg); border-radius:8px; margin-bottom:8px; font-size:12px; color:var(--text-sec); }
+        .empty-msg { text-align:center; padding:26px; color:var(--text-sec); font-size:13px; }
+        .result-count { font-size:12px; color:var(--text-sec); margin-bottom:6px; padding:0 4px; }
+        .credit { text-align:center; padding:16px 0 8px 0; color:var(--text-sec); font-size:11px; opacity:.7; }
+        .credit strong { color:var(--primary); opacity:1; }
+        .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:2000; align-items:center; justify-content:center; padding:20px; overflow-y:auto; }
+        .modal-bg.show { display:flex; }
+        .modal { background:var(--card); border-radius:16px; padding:18px; width:100%; max-width:420px; max-height:90vh; overflow-y:auto; }
+        .modal h3 { margin:0 0 12px 0; font-size:1.05rem; }
+        .modal label { display:block; font-size:12px; color:var(--text-sec); margin-top:8px; margin-bottom:3px; }
+        .modal .btn { margin-top:10px; }
+        .highlight { background:#fde68a; color:#000; padding:0 2px; border-radius:2px; }
+        .history-item { padding:8px; border-bottom:1px solid var(--border); font-size:13px; cursor:pointer; }
+        .history-item:last-child { border-bottom:none; }
+        .history-item small { color:var(--text-sec); font-size:11px; }
+        .share-btn, .swap-btn { width:100%; margin-top:8px; }
+        .fab { position:fixed; bottom:20px; right:20px; width:auto; padding:13px 20px; border-radius:50px; box-shadow:0 4px 12px rgba(0,0,0,.35); z-index:1500; flex:none; font-weight:700; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🎙️ Ventas Pro</h1>
-        <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">🌙</button>
+        <h1>🎙️ Traductor de Apoyo</h1>
+        <div style="display:flex;gap:8px;">
+            <button class="btn-icon" onclick="openAbout()" title="Acerca de">ℹ️</button>
+            <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">🌙</button>
+        </div>
     </div>
 
     <div class="card">
@@ -67,6 +84,7 @@
                 <option value="ja">🇯🇵 日本語</option>
                 <option value="zh">🇨🇳 中文</option>
             </select>
+            <button class="btn btn-secondary" onclick="swapLanguages()" style="flex:0 0 auto;padding:12px 14px;" title="Intercambiar">⇄</button>
             <select id="targetLang">
                 <option value="en">🇺🇸 English</option>
                 <option value="es">🇪🇸 Español</option>
@@ -89,14 +107,21 @@
         <div class="controls">
             <button class="btn btn-success" onclick="speakOutput()">🔊 Escuchar</button>
             <button class="btn btn-secondary" onclick="copyText()">📋 Copiar</button>
+            <button class="btn btn-secondary" onclick="shareText()">📤 Compartir</button>
         </div>
+        <button class="btn btn-secondary share-btn" onclick="openHistory()">🕘 Historial</button>
     </div>
 
     <div class="card">
         <input type="text" id="searchInput" placeholder="🔍 Buscar frase..." oninput="filterPhrases()">
         <div class="tabs" id="tabsContainer"></div>
+        <div class="subtabs" id="subtabsContainer"></div>
+        <div class="result-count" id="resultCount"></div>
         <div id="phrasesList"></div>
+        <button class="btn btn-secondary" id="loadMoreBtn" onclick="loadMore()" style="display:none;margin-top:10px;">Cargar más</button>
     </div>
+
+    <div class="credit">Desarrollado por <strong>MAR Caribe</strong></div>
 
     <div class="toast" id="toast">Mensaje</div>
 
@@ -105,34 +130,48 @@
             <h3 id="modalTitle">➕ Nueva frase</h3>
             <input type="hidden" id="editId">
             <label>Español</label>
-            <textarea id="editEs" placeholder="Texto en español..." style="height:60px"></textarea>
+            <textarea id="editEs" style="height:60px"></textarea>
             <label>Inglés</label>
-            <textarea id="editEn" placeholder="Texto en inglés..." style="height:60px"></textarea>
+            <textarea id="editEn" style="height:60px"></textarea>
             <label>Categoría</label>
-            <select id="editCat">
-                <option value="licores">🥃 Licores</option>
-                <option value="perfumes">🌸 Perfumes</option>
-                <option value="cosmeticos">💄 Cosméticos</option>
-                <option value="skincare">🧴 Skincare</option>
-                <option value="moda">👗 Moda</option>
-                <option value="calzado">👟 Calzado</option>
-                <option value="tech">📱 Tech</option>
-                <option value="hogar">🏠 Hogar</option>
-                <option value="joyeria">💍 Joyería</option>
-                <option value="salud">💊 Salud</option>
-                <option value="bienvenida">👋 Bienvenida</option>
-                <option value="objeciones">🛡 Objeciones</option>
-                <option value="cierre">🤝 Cierre</option>
-                <option value="upselling">📈 Upselling</option>
-                <option value="postventa">🔄 Postventa</option>
-                <option value="aeropuerto">✈️ Aeropuerto</option>
-            </select>
+            <select id="editCat"></select>
             <div class="controls">
-                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-secondary" onclick="closeModal('phraseModal')">Cancelar</button>
                 <button class="btn btn-primary" onclick="savePhrase()">Guardar</button>
             </div>
         </div>
     </div>
+
+    <div class="modal-bg" id="aboutModal">
+        <div class="modal">
+            <h3>ℹ️ Acerca de</h3>
+            <p style="font-size:14px;line-height:1.6;">
+                <strong>Traductor de Apoyo</strong><br>
+                Herramienta de apoyo para promotores y turistas.<br><br>
+                Desarrollado por <strong>MAR Caribe</strong><br>
+                Versión 7.0
+            </p>
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="exportData()">⬇️ Exportar</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">⬆️ Importar</button>
+                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+            </div>
+            <button class="btn btn-primary" style="margin-top:10px;width:100%;" onclick="closeModal('aboutModal')">Cerrar</button>
+        </div>
+    </div>
+
+    <div class="modal-bg" id="historyModal">
+        <div class="modal">
+            <h3>🕘 Historial</h3>
+            <div id="historyList"></div>
+            <div class="controls">
+                <button class="btn btn-danger" onclick="clearHistory()">Borrar todo</button>
+                <button class="btn btn-secondary" onclick="closeModal('historyModal')">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn btn-warning fab" onclick="openAdd()">➕ Añadir</button>
 
     <script src="data1.js"></script>
     <script src="data2.js"></script>
@@ -140,6 +179,8 @@
     <script src="data4.js"></script>
     <script src="data5.js"></script>
     <script src="data6.js"></script>
+    <script src="data7.js"></script>
+    <script src="data8.js"></script>
 
     <script>
         const builtInPhrases = [
@@ -148,39 +189,76 @@
             ...(typeof db3 !== 'undefined' ? db3 : []),
             ...(typeof db4 !== 'undefined' ? db4 : []),
             ...(typeof db5 !== 'undefined' ? db5 : []),
-            ...(typeof db6 !== 'undefined' ? db6 : [])
+            ...(typeof db6 !== 'undefined' ? db6 : []),
+            ...(typeof db7 !== 'undefined' ? db7 : []),
+            ...(typeof db8 !== 'undefined' ? db8 : [])
         ];
 
         const CATEGORIES = [
-            { id: 'all',        label: '📋 Todas' },
-            { id: 'licores',    label: '🥃 Licores' },
-            { id: 'perfumes',   label: '🌸 Perfumes' },
-            { id: 'cosmeticos', label: '💄 Cosméticos' },
-            { id: 'skincare',   label: '🧴 Skincare' },
-            { id: 'moda',       label: '👗 Moda' },
-            { id: 'calzado',    label: '👟 Calzado' },
-            { id: 'tech',       label: '📱 Tech' },
-            { id: 'hogar',      label: '🏠 Hogar' },
-            { id: 'joyeria',    label: '💍 Joyería' },
-            { id: 'salud',      label: '💊 Salud' },
-            { id: 'bienvenida', label: '👋 Bienvenida' },
-            { id: 'objeciones', label: '🛡 Objeciones' },
-            { id: 'cierre',     label: '🤝 Cierre' },
-            { id: 'upselling',  label: '📈 Upselling' },
-            { id: 'postventa',  label: '🔄 Postventa' },
-            { id: 'aeropuerto', label: '✈️ Aeropuerto' },
-            { id: 'fav',        label: '⭐ Favoritos' },
-            { id: 'custom',     label: '✏️ Mis frases' }
+            { id:'all',         label:'📋 Todas' },
+            { id:'licores',     label:'🥃 Licores' },
+            { id:'perfumes',    label:'🌸 Perfumes' },
+            { id:'cosmeticos',  label:'💄 Cosméticos' },
+            { id:'skincare',    label:'🧴 Skincare' },
+            { id:'moda',        label:'👗 Moda' },
+            { id:'calzado',     label:'👟 Calzado' },
+            { id:'tech',        label:'📱 Tech' },
+            { id:'hogar',       label:'🏠 Hogar' },
+            { id:'joyeria',     label:'💍 Joyería' },
+            { id:'salud',       label:'💊 Salud' },
+            { id:'bienvenida',  label:'👋 Bienvenida' },
+            { id:'objeciones',  label:'🛡 Objeciones' },
+            { id:'cierre',      label:'🤝 Cierre' },
+            { id:'upselling',   label:'📈 Upselling' },
+            { id:'postventa',   label:'🔄 Postventa' },
+            { id:'aeropuerto',  label:'✈️ Aeropuerto' },
+            { id:'turista',     label:'🛍 Turista' },
+            { id:'timeshare',   label:'🏖 Club Vacacional' },
+            { id:'fav',         label:'⭐ Favoritos' },
+            { id:'custom',      label:'✏️ Mis frases' }
         ];
 
+        const SUBTABS = {
+            turista: [
+                {id:'regalos', label:'🎁 Regalos'},
+                {id:'souvenirs', label:'🏺 Souvenirs'},
+                {id:'taxfree', label:'🧾 Tax Free'},
+                {id:'precios', label:'💰 Precios'},
+                {id:'producto', label:'🔍 Producto'}
+            ],
+            timeshare: [
+                {id:'bienvenida', label:'👋 Bienvenida'},
+                {id:'calificacion', label:'📋 Calificación'},
+                {id:'presentacion', label:'🎤 Presentación'},
+                {id:'tour', label:'🏨 Tour'},
+                {id:'precio', label:'💵 Precio'},
+                {id:'objeciones', label:'🛡 Objeciones'},
+                {id:'cierre', label:'🤝 Cierre'},
+                {id:'postventa', label:'🔄 Postventa'}
+            ]
+        };
+
         let currentCat = 'all';
+        let currentSub = 'all';
         let favorites = JSON.parse(localStorage.getItem('favPhrases') || '[]');
         let customPhrases = JSON.parse(localStorage.getItem('customPhrases') || '[]');
+        let history = JSON.parse(localStorage.getItem('history') || '[]');
+        let practiceMode = false;
         let ttsEngine = null;
         let installedLangs = [];
+        let visibleCount = 50;
 
-        function allPhrases() {
-            return [...builtInPhrases, ...customPhrases];
+        function allPhrases() { return [...builtInPhrases, ...customPhrases]; }
+
+        function normalize(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
+        function highlight(text, search) {
+            if (!search) return escapeHtml(text);
+            const norm = normalize(text);
+            const normSearch = normalize(search);
+            const idx = norm.indexOf(normSearch);
+            if (idx < 0) return escapeHtml(text);
+            return escapeHtml(text.slice(0,idx)) + '<span class="highlight">' + escapeHtml(text.slice(idx,idx+search.length)) + '</span>' + escapeHtml(text.slice(idx+search.length));
         }
 
         async function initTTS() {
@@ -191,113 +269,84 @@
                     status.textContent = '🔊 Audio nativo listo';
                     try {
                         const res = await ttsEngine.getSupportedLanguages();
-                        installedLangs = (res.languages || []).map(l => l.toLowerCase());
-                        console.log('Voces instaladas:', installedLangs.length);
-                    } catch (e) {
-                        console.warn('No se pudo obtener lista de idiomas', e);
-                    }
+                        installedLangs = (res.languages || []).map(l => l.toLowerCase().replace('_','-'));
+                    } catch(e){}
                 } else if (window.speechSynthesis) {
                     ttsEngine = 'browser';
-                    status.textContent = '🔊 Audio navegador listo';
+                    status.textContent = '🔊 Audio navegador';
                 } else {
                     status.textContent = '❌ Audio no disponible';
                 }
-            } catch (e) {
-                status.textContent = '❌ Error de audio';
-                console.error(e);
-            }
+            } catch(e) { status.textContent = '❌ Error de audio'; }
         }
 
         function isLangInstalled(lang) {
             if (!installedLangs || installedLangs.length === 0) return true;
             const short = lang.split('-')[0].toLowerCase();
-            return installedLangs.some(l => l === lang.toLowerCase() || l === short || l.startsWith(short));
+            return installedLangs.some(l => l === lang.toLowerCase() || l === short || l.startsWith(short + '-'));
         }
 
         async function speakText(text, lang) {
             if (!text) { showToast('⚠️ No hay texto'); return; }
-
-            if (!isLangInstalled(lang)) {
-                showToast('⚠️ Voz no instalada. Ajustes > Texto a voz');
-                return;
-            }
-
+            if (!isLangInstalled(lang)) { showToast('⚠️ Voz no instalada. Ajustes > Texto a voz'); return; }
             try {
                 if (ttsEngine && typeof ttsEngine === 'object' && ttsEngine.speak) {
-                    await ttsEngine.speak({
-                        text: text,
-                        lang: lang,
-                        rate: 0.9,
-                        pitch: 1.0,
-                        volume: 1.0
-                    });
-                    showToast('🔊 Reproduciendo...');
+                    await ttsEngine.speak({ text, lang, rate:0.9, pitch:1.0, volume:1.0 });
                 } else if (ttsEngine === 'browser' && window.speechSynthesis) {
                     window.speechSynthesis.cancel();
                     const u = new SpeechSynthesisUtterance(text);
-                    u.lang = lang;
-                    u.rate = 0.9;
+                    u.lang = lang; u.rate = 0.9;
                     const voices = window.speechSynthesis.getVoices();
                     const v = voices.find(x => x.lang.toLowerCase().startsWith(lang.split('-')[0].toLowerCase()));
                     if (v) u.voice = v;
                     window.speechSynthesis.speak(u);
-                    showToast('🔊 Reproduciendo...');
-                } else {
-                    showToast('❌ Motor de audio no disponible');
-                }
-            } catch (err) {
-                showToast('❌ Error: ' + err.message);
-                console.error('TTS Error:', err);
-            }
+                } else { showToast('❌ Motor de audio no disponible'); }
+            } catch(err) { showToast('❌ Error: ' + err.message); }
         }
 
         function langMap(code) {
-            const m = {
-                'es': 'es-ES', 'en': 'en-US', 'fr': 'fr-FR', 'de': 'de-DE',
-                'it': 'it-IT', 'pt': 'pt-BR', 'ru': 'ru-RU', 'ja': 'ja-JP', 'zh': 'zh-CN'
-            };
+            const m = {'es':'es-ES','en':'en-US','fr':'fr-FR','de':'de-DE','it':'it-IT','pt':'pt-BR','ru':'ru-RU','ja':'ja-JP','zh':'zh-CN'};
             return m[code] || 'en-US';
         }
 
         function speakOutput() {
-            const text = document.getElementById('outputText').value;
-            if (!text || text === 'Traduciendo...' || text.startsWith('Error')) {
-                showToast('⚠️ No hay traducción');
-                return;
-            }
-            speakText(text, langMap(document.getElementById('targetLang').value));
+            const t = document.getElementById('outputText').value;
+            if (!t || t === 'Traduciendo...' || t.startsWith('Error')) { showToast('⚠️ No hay traducción'); return; }
+            speakText(t, langMap(document.getElementById('targetLang').value));
         }
 
         async function translateText() {
-            const text = document.getElementById('inputText').value;
+            const text = document.getElementById('inputText').value.trim();
             if (!text) { showToast('⚠️ Escribe algo'); return; }
-
             const output = document.getElementById('outputText');
             output.value = 'Traduciendo...';
-
             const source = document.getElementById('sourceLang').value;
             const target = document.getElementById('targetLang').value;
-
             try {
-                const res = await fetch('https://api.mymemory.translated.net/get?q=' +
-                    encodeURIComponent(text) + '&langpair=' + source + '|' + target);
-
+                const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + source + '|' + target);
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
-
-                if (data.responseStatus !== 200 && data.responseStatus !== '200') {
-                    throw new Error(data.responseDetails || 'Error de la API');
-                }
-                if (!data.responseData || !data.responseData.translatedText) {
-                    throw new Error('Respuesta vacía');
-                }
+                if (data.responseStatus !== 200 && data.responseStatus !== '200') { throw new Error(data.responseDetails || 'Error de la API'); }
+                if (!data.responseData || !data.responseData.translatedText) throw new Error('Respuesta vacía');
                 output.value = data.responseData.translatedText;
+                addToHistory(text, output.value, source, target);
                 showToast('✅ Traducido');
-            } catch (e) {
-                console.error(e);
+            } catch(e) {
                 output.value = 'Error: ' + e.message;
                 showToast('❌ ' + e.message);
             }
+        }
+
+        function addToHistory(original, translated, source, target) {
+            history.unshift({ o:original, t:translated, s:source, d:target, ts:Date.now() });
+            history = history.slice(0,20);
+            localStorage.setItem('history', JSON.stringify(history));
+        }
+
+        function swapLanguages() {
+            const s = document.getElementById('sourceLang');
+            const t = document.getElementById('targetLang');
+            const tmp = s.value; s.value = t.value; t.value = tmp;
         }
 
         function startDictation() {
@@ -311,15 +360,15 @@
                 translateText();
             };
             rec.onerror = (e) => showToast('❌ ' + e.error);
-            try { rec.start(); } catch(e) { showToast('⚠️ Micrófono activo'); }
+            try { rec.start(); } catch(e){ showToast('⚠️ Micrófono activo'); }
         }
 
-        async function autoDetectAndTranslate() {
+        function autoDetectAndTranslate() {
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SR) { showToast('❌ Micrófono no soportado'); return; }
             const langs = ['es-ES','en-US','fr-FR','de-DE','it-IT','pt-BR','ru-RU','ja-JP','zh-CN'];
             let i = 0;
-            function tryNext() {
+            function next() {
                 if (i >= langs.length) { showToast('❌ Idioma no detectado'); return; }
                 const rec = new SR();
                 rec.lang = langs[i];
@@ -329,22 +378,24 @@
                         document.getElementById('sourceLang').value = langs[i].split('-')[0];
                         showToast('✅ ' + langs[i]);
                         translateText();
-                    } else { i++; tryNext(); }
+                    } else { i++; next(); }
                 };
-                rec.onerror = () => { i++; tryNext(); };
-                try { rec.start(); } catch(e) { i++; tryNext(); }
+                rec.onerror = () => { i++; next(); };
+                try { rec.start(); } catch(e){ i++; next(); }
             }
-            tryNext();
+            next();
         }
 
         function copyText() {
             const t = document.getElementById('outputText').value;
-            if (!t || t === 'Traduciendo...' || t.startsWith('Error')) {
-                showToast('⚠️ No hay texto'); return;
-            }
-            navigator.clipboard.writeText(t)
-                .then(() => showToast('📋 Copiado'))
-                .catch(() => showToast('❌ Error'));
+            if (!t || t === 'Traduciendo...' || t.startsWith('Error')) { showToast('⚠️ No hay texto'); return; }
+            navigator.clipboard.writeText(t).then(() => showToast('📋 Copiado')).catch(() => showToast('❌ Error'));
+        }
+
+        function shareText() {
+            const t = document.getElementById('outputText').value;
+            if (!t || t === 'Traduciendo...' || t.startsWith('Error')) { showToast('⚠️ No hay texto'); return; }
+            if (navigator.share) { navigator.share({ text: t }).catch(()=>{}); } else { copyText(); }
         }
 
         function buildTabs() {
@@ -354,59 +405,91 @@
                 const b = document.createElement('button');
                 b.className = 'tab' + (cat.id === currentCat ? ' active' : '');
                 b.textContent = cat.label;
-                b.onclick = () => setCategory(cat.id);
+                b.onclick = () => { currentCat = cat.id; currentSub = 'all'; visibleCount = 50; buildTabs(); buildSubtabs(); renderPhrases(); };
                 c.appendChild(b);
             });
         }
 
-        function setCategory(id) {
-            currentCat = id;
-            buildTabs();
-            renderPhrases();
+        function buildSubtabs() {
+            const c = document.getElementById('subtabsContainer');
+            c.innerHTML = '';
+            const subs = SUBTABS[currentCat];
+            if (!subs) { c.style.display = 'none'; return; }
+            c.style.display = 'flex';
+            const allBtn = document.createElement('button');
+            allBtn.className = 'subtab' + (currentSub === 'all' ? ' active' : '');
+            allBtn.textContent = 'Todos';
+            allBtn.onclick = () => { currentSub = 'all'; visibleCount = 50; buildSubtabs(); renderPhrases(); };
+            c.appendChild(allBtn);
+            subs.forEach(sub => {
+                const b = document.createElement('button');
+                b.className = 'subtab' + (currentSub === sub.id ? ' active' : '');
+                b.textContent = sub.label;
+                b.onclick = () => { currentSub = sub.id; visibleCount = 50; buildSubtabs(); renderPhrases(); };
+                c.appendChild(b);
+            });
         }
 
         function escapeHtml(s) {
             const d = document.createElement('div');
-            d.textContent = s;
+            d.textContent = s || '';
             return d.innerHTML;
         }
 
         function renderPhrases() {
             const list = document.getElementById('phrasesList');
-            const search = document.getElementById('searchInput').value.toLowerCase();
+            const countEl = document.getElementById('resultCount');
+            const loadBtn = document.getElementById('loadMoreBtn');
+            const search = document.getElementById('searchInput').value.trim();
+            const searchNorm = normalize(search);
             let items = allPhrases();
 
             if (currentCat === 'fav') {
                 items = items.filter(p => favorites.includes(p.i));
             } else if (currentCat === 'custom') {
                 items = items.filter(p => p._custom);
+            } else if (currentCat === 'turista') {
+                if (currentSub === 'all') {
+                    items = items.filter(p => ['regalos','souvenirs','taxfree','precios','producto'].includes(p.c));
+                } else {
+                    items = items.filter(p => p.c === currentSub);
+                }
+            } else if (currentCat === 'timeshare') {
+                if (currentSub === 'all') {
+                    items = items.filter(p => ['bienvenida','calificacion','presentacion','tour','precio','objeciones','cierre','postventa'].includes(p.c) && p.i >= 1051);
+                } else {
+                    items = items.filter(p => p.c === currentSub && p.i >= 1051);
+                }
             } else if (currentCat !== 'all') {
                 items = items.filter(p => p.c === currentCat);
             }
 
-            if (search) {
-                items = items.filter(p =>
-                    (p.e || '').toLowerCase().includes(search) ||
-                    (p.n || '').toLowerCase().includes(search)
-                );
+            if (searchNorm) {
+                items = items.filter(p => normalize(p.e).includes(searchNorm) || normalize(p.n).includes(searchNorm));
             }
+
+            countEl.textContent = items.length ? items.length + ' frases encontradas' : '';
 
             if (items.length === 0) {
                 list.innerHTML = '<div class="empty-msg">No hay frases en esta categoría.</div>';
+                loadBtn.style.display = 'none';
                 return;
             }
 
+            const toShow = items.slice(0, visibleCount);
             list.innerHTML = '';
-            items.forEach(p => {
+            toShow.forEach(p => {
                 const isFav = favorites.includes(p.i);
                 const div = document.createElement('div');
                 div.className = 'phrase-item';
                 let html = '<button class="fav-btn ' + (isFav ? 'active' : '') + '" data-fav="' + p.i + '">⭐</button>';
-                html += '<div class="phrase-es">🇪🇸 ' + escapeHtml(p.e) + '</div>';
-                html += '<div class="phrase-en">🇺🇸 ' + escapeHtml(p.n) + '</div>';
+                html += '<div class="phrase-es">🇪🇸 ' + highlight(p.e, search) + '</div>';
+                html += '<div class="phrase-en' + (practiceMode ? ' hidden' : '') + '" data-en="' + p.i + '">🇺🇸 ' + highlight(p.n, search) + '</div>';
                 html += '<div class="phrase-actions">';
+                if (practiceMode) { html += '<button class="btn btn-secondary" data-reveal="' + p.i + '">👁 Ver inglés</button>'; }
                 html += '<button class="btn btn-danger" data-speak-es="' + p.i + '">🔊 ES</button>';
                 html += '<button class="btn btn-success" data-speak-en="' + p.i + '">🔊 EN</button>';
+                html += '<button class="btn btn-secondary" data-share-phrase="' + p.i + '">📤</button>';
                 if (p._custom) {
                     html += '<button class="btn btn-warning" data-edit="' + p.i + '">✏️</button>';
                     html += '<button class="btn btn-secondary" data-del="' + p.i + '">🗑</button>';
@@ -416,63 +499,54 @@
                 list.appendChild(div);
             });
 
+            loadBtn.style.display = items.length > visibleCount ? 'block' : 'none';
+
             list.onclick = (e) => {
-                const t = e.target;
+                const t = e.target.closest('button');
+                if (!t) return;
                 if (t.hasAttribute('data-fav')) { toggleFav(parseInt(t.getAttribute('data-fav'))); return; }
-                if (t.hasAttribute('data-speak-es')) {
-                    const id = parseInt(t.getAttribute('data-speak-es'));
-                    const ph = allPhrases().find(x => x.i === id);
-                    if (ph) speakText(ph.e, 'es-ES');
-                    return;
-                }
-                if (t.hasAttribute('data-speak-en')) {
-                    const id = parseInt(t.getAttribute('data-speak-en'));
-                    const ph = allPhrases().find(x => x.i === id);
-                    if (ph) speakText(ph.n, 'en-US');
-                    return;
-                }
-                if (t.hasAttribute('data-edit')) {
-                    openEdit(parseInt(t.getAttribute('data-edit')));
-                    return;
-                }
-                if (t.hasAttribute('data-del')) {
-                    if (confirm('¿Borrar esta frase?')) deletePhrase(parseInt(t.getAttribute('data-del')));
-                    return;
-                }
+                if (t.hasAttribute('data-speak-es')) { const p = allPhrases().find(x => x.i === parseInt(t.getAttribute('data-speak-es'))); if (p) speakText(p.e, 'es-ES'); return; }
+                if (t.hasAttribute('data-speak-en')) { const p = allPhrases().find(x => x.i === parseInt(t.getAttribute('data-speak-en'))); if (p) speakText(p.n, 'en-US'); return; }
+                if (t.hasAttribute('data-reveal')) { const enEl = list.querySelector('[data-en="' + t.getAttribute('data-reveal') + '"]'); if (enEl) enEl.classList.remove('hidden'); t.remove(); return; }
+                if (t.hasAttribute('data-share-phrase')) { const p = allPhrases().find(x => x.i === parseInt(t.getAttribute('data-share-phrase'))); if (p && navigator.share) navigator.share({ text: p.e + '\n' + p.n }).catch(()=>{}); return; }
+                if (t.hasAttribute('data-edit')) { openEdit(parseInt(t.getAttribute('data-edit'))); return; }
+                if (t.hasAttribute('data-del')) { if (confirm('¿Borrar esta frase?')) deletePhrase(parseInt(t.getAttribute('data-del'))); return; }
             };
         }
 
+        function loadMore() { visibleCount += 50; renderPhrases(); }
+
         function toggleFav(id) {
-            const idx = favorites.indexOf(id);
-            if (idx >= 0) favorites.splice(idx, 1);
-            else favorites.push(id);
+            const i = favorites.indexOf(id);
+            if (i >= 0) favorites.splice(i,1); else favorites.push(id);
             localStorage.setItem('favPhrases', JSON.stringify(favorites));
             renderPhrases();
-            showToast(idx >= 0 ? '☆ Quitado de favoritos' : '⭐ Añadido');
+            showToast(i >= 0 ? '☆ Quitado' : '⭐ Añadido');
         }
 
         function openAdd() {
-            document.getElementById('modalTitle').textContent = '➕ Nueva frase';
+            const catSel = document.getElementById('editCat');
+            catSel.innerHTML = '<option value="licores">Licores</option><option value="perfumes">Perfumes</option><option value="cosmeticos">Cosmeticos</option><option value="skincare">Skincare</option><option value="moda">Moda</option><option value="calzado">Calzado</option><option value="tech">Tech</option><option value="hogar">Hogar</option><option value="joyeria">Joyeria</option><option value="salud">Salud</option><option value="bienvenida">Bienvenida</option><option value="objeciones">Objeciones</option><option value="cierre">Cierre</option><option value="upselling">Upselling</option><option value="postventa">Postventa</option><option value="aeropuerto">Aeropuerto</option><option value="regalos">Regalos</option><option value="souvenirs">Souvenirs</option><option value="taxfree">Tax Free</option><option value="precios">Precios</option><option value="producto">Producto</option><option value="calificacion">Calificacion</option><option value="presentacion">Presentacion</option><option value="tour">Tour</option><option value="precio">Precio</option>';
+            document.getElementById('modalTitle').textContent = 'Nueva frase';
             document.getElementById('editId').value = '';
             document.getElementById('editEs').value = '';
             document.getElementById('editEn').value = '';
-            document.getElementById('editCat').value = 'licores';
             document.getElementById('phraseModal').classList.add('show');
         }
 
         function openEdit(id) {
             const ph = customPhrases.find(x => x.i === id);
             if (!ph) return;
-            document.getElementById('modalTitle').textContent = '✏️ Editar frase';
+            openAdd();
+            document.getElementById('modalTitle').textContent = 'Editar frase';
             document.getElementById('editId').value = id;
             document.getElementById('editEs').value = ph.e;
             document.getElementById('editEn').value = ph.n;
             document.getElementById('editCat').value = ph.c;
-            document.getElementById('phraseModal').classList.add('show');
         }
 
-        function closeModal() {
-            document.getElementById('phraseModal').classList.remove('show');
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
         }
 
         function savePhrase() {
@@ -480,24 +554,21 @@
             const es = document.getElementById('editEs').value.trim();
             const en = document.getElementById('editEn').value.trim();
             const cat = document.getElementById('editCat').value;
-
-            if (!es || !en) { showToast('⚠️ Rellena ambos idiomas'); return; }
-
+            if (!es || !en) { showToast('Rellena ambos idiomas'); return; }
             if (id) {
                 const idx = customPhrases.findIndex(x => x.i === parseInt(id));
                 if (idx >= 0) {
                     customPhrases[idx].e = es;
                     customPhrases[idx].n = en;
                     customPhrases[idx].c = cat;
-                    showToast('✅ Guardada');
+                    showToast('Guardada');
                 }
             } else {
-                const newId = Date.now();
-                customPhrases.push({ i: newId, c: cat, e: es, n: en, _custom: true });
-                showToast('✅ Añadida');
+                customPhrases.push({ i: Date.now(), c: cat, e: es, n: en, _custom: true });
+                showToast('Anadida');
             }
             localStorage.setItem('customPhrases', JSON.stringify(customPhrases));
-            closeModal();
+            closeModal('phraseModal');
             renderPhrases();
         }
 
@@ -505,10 +576,10 @@
             customPhrases = customPhrases.filter(x => x.i !== id);
             localStorage.setItem('customPhrases', JSON.stringify(customPhrases));
             renderPhrases();
-            showToast('🗑 Borrada');
+            showToast('Borrada');
         }
 
-        function filterPhrases() { renderPhrases(); }
+        function filterPhrases() { visibleCount = 50; renderPhrases(); }
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -525,20 +596,102 @@
             localStorage.setItem('theme', isDark ? 'light' : 'dark');
         }
 
+        function openAbout() { document.getElementById('aboutModal').classList.add('show'); }
+
+        function openHistory() {
+            const list = document.getElementById('historyList');
+            if (history.length === 0) {
+                list.innerHTML = '<p style="text-align:center;color:var(--text-sec);padding:20px;font-size:13px;">No hay traducciones aun.</p>';
+            } else {
+                list.innerHTML = history.map((h, i) =>
+                    '<div class="history-item" onclick="loadHistory(' + i + ')">' +
+                    '<div>' + escapeHtml(h.o) + '</div>' +
+                    '<div style="color:var(--primary);margin-top:4px;">' + escapeHtml(h.t) + '</div>' +
+                    '<small>' + h.s + ' - ' + h.d + '</small>' +
+                    '</div>'
+                ).join('');
+            }
+            document.getElementById('historyModal').classList.add('show');
+        }
+
+        function loadHistory(i) {
+            const h = history[i];
+            if (!h) return;
+            document.getElementById('inputText').value = h.o;
+            document.getElementById('outputText').value = h.t;
+            document.getElementById('sourceLang').value = h.s;
+            document.getElementById('targetLang').value = h.d;
+            closeModal('historyModal');
+        }
+
+        function clearHistory() {
+            if (!confirm('Borrar historial?')) return;
+            history = [];
+            localStorage.removeItem('history');
+            openHistory();
+            showToast('Historial borrado');
+        }
+
+        function exportData() {
+            const data = {
+                favorites: favorites,
+                customPhrases: customPhrases,
+                history: history,
+                version: '7.0',
+                exported: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'traductor-apoyo-backup-' + new Date().toISOString().slice(0,10) + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Exportado');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.favorites) {
+                        favorites = data.favorites;
+                        localStorage.setItem('favPhrases', JSON.stringify(favorites));
+                    }
+                    if (data.customPhrases) {
+                        customPhrases = data.customPhrases;
+                        localStorage.setItem('customPhrases', JSON.stringify(customPhrases));
+                    }
+                    if (data.history) {
+                        history = data.history;
+                        localStorage.setItem('history', JSON.stringify(history));
+                    }
+                    renderPhrases();
+                    showToast('Importado');
+                    closeModal('aboutModal');
+                } catch(err) {
+                    showToast('Archivo invalido');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function togglePractice() {
+            practiceMode = !practiceMode;
+            renderPhrases();
+            showToast(practiceMode ? 'Modo practica ON' : 'Modo practica OFF');
+        }
+
         const savedTheme = localStorage.getItem('theme') ||
             (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         document.documentElement.setAttribute('data-theme', savedTheme);
         document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
 
-        // Botón flotante "Añadir"
-        const addBtn = document.createElement('button');
-        addBtn.textContent = '➕ Añadir frase';
-        addBtn.className = 'btn btn-warning';
-        addBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;width:auto;padding:14px 20px;border-radius:50px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:1500;flex:none;';
-        addBtn.onclick = openAdd;
-        document.body.appendChild(addBtn);
-
         buildTabs();
+        buildSubtabs();
         initTTS();
         renderPhrases();
     </script>
