@@ -279,7 +279,7 @@
         }
 
 
-        async function speakText(text, lang) {
+                async function speakText(text, lang) {
             if (!text) { showToast("⚠️ No hay texto"); return; }
             try {
                 if (ttsEngine && typeof ttsEngine === "object" && ttsEngine.speak) {
@@ -299,10 +299,6 @@
                 showToast("❌ Error: " + (err.message || "No se pudo reproducir"));
             }
         }
-    } catch(err) {
-        showToast('❌ Error: ' + (err.message || 'No se pudo reproducir'));
-    }
-}
 
         function langMap(code) {
             const m = {'es':'es-ES','en':'en-US','fr':'fr-FR','de':'de-DE','it':'it-IT','pt':'pt-BR','ru':'ru-RU','ja':'ja-JP','zh':'zh-CN'};
@@ -690,10 +686,26 @@
         document.documentElement.setAttribute('data-theme', savedTheme);
         document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
 
-        buildTabs();
-        buildSubtabs();
-        initTTS();
-        renderPhrases();
+        
+        function initApp() {
+            try {
+                buildTabs();
+                buildSubtabs();
+                initTTS();
+                renderPhrases();
+            } catch(e) {
+                console.error("Error en initApp:", e);
+                const status = document.getElementById('audioStatus');
+                if (status) status.textContent = '❌ Error de carga: ' + e.message;
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initApp);
+        } else {
+            initApp();
+        }
     </script>
 </body>
 </html>
+
