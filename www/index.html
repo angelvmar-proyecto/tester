@@ -195,7 +195,6 @@
         ];
 
         const CATEGORIES = [
-            
             { id:'licores',     label:'🥃 Licores' },
             { id:'perfumes',    label:'🌸 Perfumes' },
             { id:'cosmeticos',  label:'💄 Cosméticos' },
@@ -240,17 +239,28 @@
 
         let currentCat = 'licores';
         let currentSub = 'all';
-        let favorites = JSON.parse(localStorage.getItem('favPhrases') || '[]');
-        let customPhrases = JSON.parse(localStorage.getItem('customPhrases') || '[]');
-        let history = JSON.parse(localStorage.getItem('history') || '[]');
+        let favorites = [];
+        let customPhrases = [];
+        let history = [];
         let practiceMode = false;
         let ttsEngine = null;
-        let installedLangs = [];
         let visibleCount = 50;
+
+        try { favorites = JSON.parse(localStorage.getItem('favPhrases') || '[]'); } catch(e){}
+        try { customPhrases = JSON.parse(localStorage.getItem('customPhrases') || '[]'); } catch(e){}
+        try { history = JSON.parse(localStorage.getItem('history') || '[]'); } catch(e){}
 
         function allPhrases() { return [...builtInPhrases, ...customPhrases]; }
 
-        function normalize(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+        function escapeHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s || '';
+            return d.innerHTML;
+        }
+
+        function normalize(s) {
+            return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+        }
 
         function highlight(text, search) {
             if (!search) return escapeHtml(text);
@@ -261,25 +271,38 @@
             return escapeHtml(text.slice(0,idx)) + '<span class="highlight">' + escapeHtml(text.slice(idx,idx+search.length)) + '</span>' + escapeHtml(text.slice(idx+search.length));
         }
 
-        async function initTTS() {
-            const status = document.getElementById('audioStatus');
+        function langMap(code) {
+            const m = {'es':'es-ES','en':'en-US','fr':'fr-FR','de':'de-DE','it':'it-IT','pt':'pt-BR','ru':'ru-RU','ja':'ja-JP','zh':'zh-CN'};
+            return m[code] || 'en-US';
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(window._tt);
+            window._tt = setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // ============ AUDIO ============
+        function initAudio() {
             try {
                 if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.TextToSpeech) {
                     ttsEngine = window.Capacitor.Plugins.TextToSpeech;
-                    status.textContent = '🔊 Audio nativo listo';
+                    document.getElementById('audioStatus').textContent = '🔊 Audio nativo listo';
                 } else if (window.speechSynthesis) {
                     ttsEngine = 'browser';
-                    status.textContent = '🔊 Audio navegador';
+                    document.getElementById('audioStatus').textContent = '🔊 Audio navegador';
                 } else {
-                    status.textContent = '❌ Audio no disponible';
+                    document.getElementById('audioStatus').textContent = '❌ Audio no disponible';
                 }
-            } catch(e) { 
-                status.textContent = '❌ Error de audio'; 
+            } catch(e) {
+                document.getElementById('audioStatus').textContent = '❌ Error de audio';
             }
         }
 
-
-                async function speakText(text, lang) {
+        async function speakText(text, lang) {
             if (!text) { showToast("⚠️ No hay texto"); return; }
             try {
                 if (ttsEngine && typeof ttsEngine === "object" && ttsEngine.speak) {
@@ -288,9 +311,6 @@
                     window.speechSynthesis.cancel();
                     const u = new SpeechSynthesisUtterance(text);
                     u.lang = lang; u.rate = 0.9;
-                    const voices = window.speechSynthesis.getVoices();
-                    const v = voices.find(x => x.lang.toLowerCase().startsWith(lang.split("-")[0].toLowerCase()));
-                    if (v) u.voice = v;
                     window.speechSynthesis.speak(u);
                 } else {
                     showToast("❌ Motor de audio no disponible");
@@ -300,17 +320,13 @@
             }
         }
 
-        function langMap(code) {
-            const m = {'es':'es-ES','en':'en-US','fr':'fr-FR','de':'de-DE','it':'it-IT','pt':'pt-BR','ru':'ru-RU','ja':'ja-JP','zh':'zh-CN'};
-            return m[code] || 'en-US';
-        }
-
         function speakOutput() {
             const t = document.getElementById('outputText').value;
             if (!t || t === 'Traduciendo...' || t.startsWith('Error')) { showToast('⚠️ No hay traducción'); return; }
             speakText(t, langMap(document.getElementById('targetLang').value));
         }
 
+        // ============ TRADUCCION ============
         async function translateText() {
             const text = document.getElementById('inputText').value.trim();
             if (!text) { showToast('⚠️ Escribe algo'); return; }
@@ -325,18 +341,14 @@
                 if (data.responseStatus !== 200 && data.responseStatus !== '200') { throw new Error(data.responseDetails || 'Error de la API'); }
                 if (!data.responseData || !data.responseData.translatedText) throw new Error('Respuesta vacía');
                 output.value = data.responseData.translatedText;
-                addToHistory(text, output.value, source, target);
+                history.unshift({ o:text, t:output.value, s:source, d:target, ts:Date.now() });
+                history = history.slice(0,20);
+                localStorage.setItem('history', JSON.stringify(history));
                 showToast('✅ Traducido');
             } catch(e) {
                 output.value = 'Error: ' + e.message;
                 showToast('❌ ' + e.message);
             }
-        }
-
-        function addToHistory(original, translated, source, target) {
-            history.unshift({ o:original, t:translated, s:source, d:target, ts:Date.now() });
-            history = history.slice(0,20);
-            localStorage.setItem('history', JSON.stringify(history));
         }
 
         function swapLanguages() {
@@ -345,6 +357,19 @@
             const tmp = s.value; s.value = t.value; t.value = tmp;
         }
 
+        function copyText() {
+            const t = document.getElementById('outputText').value;
+            if (!t || t === 'Traduciendo...' || t.startsWith('Error')) { showToast('⚠️ No hay texto'); return; }
+            navigator.clipboard.writeText(t).then(() => showToast('📋 Copiado')).catch(() => showToast('❌ Error'));
+        }
+
+        function shareText() {
+            const t = document.getElementById('outputText').value;
+            if (!t || t === 'Traduciendo...' || t.startsWith('Error')) { showToast('⚠️ No hay texto'); return; }
+            if (navigator.share) { navigator.share({ text: t }).catch(()=>{}); } else { copyText(); }
+        }
+
+        // ============ MICROFONO ============
         function startDictation() {
             const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SR) { showToast('❌ Micrófono no soportado'); return; }
@@ -374,7 +399,6 @@
             };
             
             try { rec.start(); } catch(e){ showToast('⚠️ Micrófono activo'); }
-        }
         }
 
         function autoDetectAndTranslate() {
@@ -415,25 +439,8 @@
                 btn.style.background = '#8b5cf6';
             }, 10000);
         }
-                };
-                rec.onerror = () => { i++; next(); };
-                try { rec.start(); } catch(e){ i++; next(); }
-            }
-            next();
-        }
 
-        function copyText() {
-            const t = document.getElementById('outputText').value;
-            if (!t || t === 'Traduciendo...' || t.startsWith('Error')) { showToast('⚠️ No hay texto'); return; }
-            navigator.clipboard.writeText(t).then(() => showToast('📋 Copiado')).catch(() => showToast('❌ Error'));
-        }
-
-        function shareText() {
-            const t = document.getElementById('outputText').value;
-            if (!t || t === 'Traduciendo...' || t.startsWith('Error')) { showToast('⚠️ No hay texto'); return; }
-            if (navigator.share) { navigator.share({ text: t }).catch(()=>{}); } else { copyText(); }
-        }
-
+        // ============ RENDERIZADO ============
         function buildTabs() {
             const c = document.getElementById('tabsContainer');
             c.innerHTML = '';
@@ -452,7 +459,6 @@
             const subs = SUBTABS[currentCat];
             if (!subs) { c.style.display = 'none'; return; }
             c.style.display = 'flex';
-            
             subs.forEach(sub => {
                 const b = document.createElement('button');
                 b.className = 'subtab' + (currentSub === sub.id ? ' active' : '');
@@ -462,16 +468,20 @@
             });
         }
 
-        function escapeHtml(s) {
-            const d = document.createElement('div');
-            d.textContent = s || '';
-            return d.innerHTML;
+        function toggleFav(id) {
+            const i = favorites.indexOf(id);
+            if (i >= 0) favorites.splice(i,1); else favorites.push(id);
+            localStorage.setItem('favPhrases', JSON.stringify(favorites));
+            renderPhrases();
+            showToast(i >= 0 ? '☆ Quitado' : '⭐ Añadido');
         }
 
         function renderPhrases() {
             const list = document.getElementById('phrasesList');
             const countEl = document.getElementById('resultCount');
             const loadBtn = document.getElementById('loadMoreBtn');
+            if (!list) return;
+
             const search = document.getElementById('searchInput').value.trim();
             const searchNorm = normalize(search);
             let items = allPhrases();
@@ -500,11 +510,11 @@
                 items = items.filter(p => normalize(p.e).includes(searchNorm) || normalize(p.n).includes(searchNorm));
             }
 
-            countEl.textContent = items.length ? items.length + ' frases encontradas' : '';
+            if (countEl) countEl.textContent = items.length ? items.length + ' frases encontradas' : '';
 
             if (items.length === 0) {
                 list.innerHTML = '<div class="empty-msg">No hay frases en esta categoría.</div>';
-                loadBtn.style.display = 'none';
+                if (loadBtn) loadBtn.style.display = 'none';
                 return;
             }
 
@@ -516,12 +526,10 @@
                 div.className = 'phrase-item';
                 let html = '<button class="fav-btn ' + (isFav ? 'active' : '') + '" data-fav="' + p.i + '">⭐</button>';
                 html += '<div class="phrase-es">🇪🇸 ' + highlight(p.e, search) + '</div>';
-                html += '<div class="phrase-en' + (practiceMode ? ' hidden' : '') + '" data-en="' + p.i + '">🇺🇸 ' + highlight(p.n, search) + '</div>';
+                html += '<div class="phrase-en">🇺🇸 ' + highlight(p.n, search) + '</div>';
                 html += '<div class="phrase-actions">';
-                if (practiceMode) { html += '<button class="btn btn-secondary" data-reveal="' + p.i + '">👁 Ver inglés</button>'; }
                 html += '<button class="btn btn-danger" data-speak-es="' + p.i + '">🔊 ES</button>';
                 html += '<button class="btn btn-success" data-speak-en="' + p.i + '">🔊 EN</button>';
-                html += '<button class="btn btn-secondary" data-share-phrase="' + p.i + '">📤</button>';
                 if (p._custom) {
                     html += '<button class="btn btn-warning" data-edit="' + p.i + '">✏️</button>';
                     html += '<button class="btn btn-secondary" data-del="' + p.i + '">🗑</button>';
@@ -531,7 +539,7 @@
                 list.appendChild(div);
             });
 
-            loadBtn.style.display = items.length > visibleCount ? 'block' : 'none';
+            if (loadBtn) loadBtn.style.display = items.length > visibleCount ? 'block' : 'none';
 
             list.onclick = (e) => {
                 const t = e.target.closest('button');
@@ -539,27 +547,19 @@
                 if (t.hasAttribute('data-fav')) { toggleFav(parseInt(t.getAttribute('data-fav'))); return; }
                 if (t.hasAttribute('data-speak-es')) { const p = allPhrases().find(x => x.i === parseInt(t.getAttribute('data-speak-es'))); if (p) speakText(p.e, 'es-ES'); return; }
                 if (t.hasAttribute('data-speak-en')) { const p = allPhrases().find(x => x.i === parseInt(t.getAttribute('data-speak-en'))); if (p) speakText(p.n, 'en-US'); return; }
-                if (t.hasAttribute('data-reveal')) { const enEl = list.querySelector('[data-en="' + t.getAttribute('data-reveal') + '"]'); if (enEl) enEl.classList.remove('hidden'); t.remove(); return; }
-                if (t.hasAttribute('data-share-phrase')) { const p = allPhrases().find(x => x.i === parseInt(t.getAttribute('data-share-phrase'))); if (p && navigator.share) navigator.share({ text: p.e + '\n' + p.n }).catch(()=>{}); return; }
                 if (t.hasAttribute('data-edit')) { openEdit(parseInt(t.getAttribute('data-edit'))); return; }
                 if (t.hasAttribute('data-del')) { if (confirm('¿Borrar esta frase?')) deletePhrase(parseInt(t.getAttribute('data-del'))); return; }
             };
         }
 
         function loadMore() { visibleCount += 50; renderPhrases(); }
+        function filterPhrases() { visibleCount = 50; renderPhrases(); }
 
-        function toggleFav(id) {
-            const i = favorites.indexOf(id);
-            if (i >= 0) favorites.splice(i,1); else favorites.push(id);
-            localStorage.setItem('favPhrases', JSON.stringify(favorites));
-            renderPhrases();
-            showToast(i >= 0 ? '☆ Quitado' : '⭐ Añadido');
-        }
-
+        // ============ MODALES ============
         function openAdd() {
             const catSel = document.getElementById('editCat');
             catSel.innerHTML = '<option value="licores">Licores</option><option value="perfumes">Perfumes</option><option value="cosmeticos">Cosmeticos</option><option value="skincare">Skincare</option><option value="moda">Moda</option><option value="calzado">Calzado</option><option value="tech">Tech</option><option value="hogar">Hogar</option><option value="joyeria">Joyeria</option><option value="salud">Salud</option><option value="bienvenida">Bienvenida</option><option value="objeciones">Objeciones</option><option value="cierre">Cierre</option><option value="upselling">Upselling</option><option value="postventa">Postventa</option><option value="aeropuerto">Aeropuerto</option><option value="regalos">Regalos</option><option value="souvenirs">Souvenirs</option><option value="taxfree">Tax Free</option><option value="precios">Precios</option><option value="producto">Producto</option><option value="calificacion">Calificacion</option><option value="presentacion">Presentacion</option><option value="tour">Tour</option><option value="precio">Precio</option>';
-            document.getElementById('modalTitle').textContent = 'Nueva frase';
+            document.getElementById('modalTitle').textContent = '➕ Nueva frase';
             document.getElementById('editId').value = '';
             document.getElementById('editEs').value = '';
             document.getElementById('editEn').value = '';
@@ -570,34 +570,30 @@
             const ph = customPhrases.find(x => x.i === id);
             if (!ph) return;
             openAdd();
-            document.getElementById('modalTitle').textContent = 'Editar frase';
+            document.getElementById('modalTitle').textContent = '✏️ Editar frase';
             document.getElementById('editId').value = id;
             document.getElementById('editEs').value = ph.e;
             document.getElementById('editEn').value = ph.n;
             document.getElementById('editCat').value = ph.c;
         }
 
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('show');
-        }
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
         function savePhrase() {
             const id = document.getElementById('editId').value;
             const es = document.getElementById('editEs').value.trim();
             const en = document.getElementById('editEn').value.trim();
             const cat = document.getElementById('editCat').value;
-            if (!es || !en) { showToast('Rellena ambos idiomas'); return; }
+            if (!es || !en) { showToast('⚠️ Rellena ambos idiomas'); return; }
             if (id) {
                 const idx = customPhrases.findIndex(x => x.i === parseInt(id));
                 if (idx >= 0) {
-                    customPhrases[idx].e = es;
-                    customPhrases[idx].n = en;
-                    customPhrases[idx].c = cat;
-                    showToast('Guardada');
+                    customPhrases[idx].e = es; customPhrases[idx].n = en; customPhrases[idx].c = cat;
+                    showToast('✅ Guardada');
                 }
             } else {
                 customPhrases.push({ i: Date.now(), c: cat, e: es, n: en, _custom: true });
-                showToast('Anadida');
+                showToast('✅ Añadida');
             }
             localStorage.setItem('customPhrases', JSON.stringify(customPhrases));
             closeModal('phraseModal');
@@ -608,17 +604,7 @@
             customPhrases = customPhrases.filter(x => x.i !== id);
             localStorage.setItem('customPhrases', JSON.stringify(customPhrases));
             renderPhrases();
-            showToast('Borrada');
-        }
-
-        function filterPhrases() { visibleCount = 50; renderPhrases(); }
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            clearTimeout(window._tt);
-            window._tt = setTimeout(() => t.classList.remove('show'), 2500);
+            showToast('🗑 Borrada');
         }
 
         function toggleTheme() {
@@ -633,13 +619,13 @@
         function openHistory() {
             const list = document.getElementById('historyList');
             if (history.length === 0) {
-                list.innerHTML = '<p style="text-align:center;color:var(--text-sec);padding:20px;font-size:13px;">No hay traducciones aun.</p>';
+                list.innerHTML = '<p style="text-align:center;color:var(--text-sec);padding:20px;font-size:13px;">No hay traducciones aún.</p>';
             } else {
                 list.innerHTML = history.map((h, i) =>
                     '<div class="history-item" onclick="loadHistory(' + i + ')">' +
                     '<div>' + escapeHtml(h.o) + '</div>' +
                     '<div style="color:var(--primary);margin-top:4px;">' + escapeHtml(h.t) + '</div>' +
-                    '<small>' + h.s + ' - ' + h.d + '</small>' +
+                    '<small>' + h.s + ' → ' + h.d + '</small>' +
                     '</div>'
                 ).join('');
             }
@@ -657,29 +643,23 @@
         }
 
         function clearHistory() {
-            if (!confirm('Borrar historial?')) return;
+            if (!confirm('¿Borrar historial?')) return;
             history = [];
             localStorage.removeItem('history');
             openHistory();
-            showToast('Historial borrado');
+            showToast('🗑 Historial borrado');
         }
 
         function exportData() {
-            const data = {
-                favorites: favorites,
-                customPhrases: customPhrases,
-                history: history,
-                version: '7.0',
-                exported: new Date().toISOString()
-            };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+            const data = { favorites, customPhrases, history, version: '7.0', exported: new Date().toISOString() };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'traductor-apoyo-backup-' + new Date().toISOString().slice(0,10) + '.json';
+            a.download = 'asistente-ventas-backup-' + new Date().toISOString().slice(0,10) + '.json';
             a.click();
             URL.revokeObjectURL(url);
-            showToast('Exportado');
+            showToast('⬇️ Exportado');
         }
 
         function importData(event) {
@@ -689,59 +669,35 @@
             reader.onload = (e) => {
                 try {
                     const data = JSON.parse(e.target.result);
-                    if (data.favorites) {
-                        favorites = data.favorites;
-                        localStorage.setItem('favPhrases', JSON.stringify(favorites));
-                    }
-                    if (data.customPhrases) {
-                        customPhrases = data.customPhrases;
-                        localStorage.setItem('customPhrases', JSON.stringify(customPhrases));
-                    }
-                    if (data.history) {
-                        history = data.history;
-                        localStorage.setItem('history', JSON.stringify(history));
-                    }
+                    if (data.favorites) { favorites = data.favorites; localStorage.setItem('favPhrases', JSON.stringify(favorites)); }
+                    if (data.customPhrases) { customPhrases = data.customPhrases; localStorage.setItem('customPhrases', JSON.stringify(customPhrases)); }
+                    if (data.history) { history = data.history; localStorage.setItem('history', JSON.stringify(history)); }
                     renderPhrases();
-                    showToast('Importado');
+                    showToast('⬆️ Importado');
                     closeModal('aboutModal');
-                } catch(err) {
-                    showToast('Archivo invalido');
-                }
+                } catch(err) { showToast('❌ Archivo inválido'); }
             };
             reader.readAsText(file);
         }
 
-        function togglePractice() {
-            practiceMode = !practiceMode;
-            renderPhrases();
-            showToast(practiceMode ? 'Modo practica ON' : 'Modo practica OFF');
-        }
-
-        const savedTheme = localStorage.getItem('theme') ||
-            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
-
-        
-        function initApp() {
+        // ============ INICIALIZACION FINAL ============
+        function iniciarApp() {
             try {
+                initAudio();
                 buildTabs();
                 buildSubtabs();
-                initTTS();
                 renderPhrases();
             } catch(e) {
-                console.error("Error en initApp:", e);
-                const status = document.getElementById('audioStatus');
-                if (status) status.textContent = '❌ Error de carga: ' + e.message;
+                console.error("Error al iniciar:", e);
+                alert("Error al iniciar la app: " + e.message);
             }
         }
-        
+
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initApp);
+            document.addEventListener('DOMContentLoaded', iniciarApp);
         } else {
-            initApp();
+            iniciarApp();
         }
     </script>
 </body>
 </html>
-
