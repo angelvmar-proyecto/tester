@@ -267,17 +267,15 @@
                 if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.TextToSpeech) {
                     ttsEngine = window.Capacitor.Plugins.TextToSpeech;
                     status.textContent = '🔊 Audio nativo listo';
-                    try {
-                        const res = await ttsEngine.getSupportedLanguages();
-                        installedLangs = (res.languages || []).map(l => l.toLowerCase().replace('_','-'));
-                    } catch(e){}
                 } else if (window.speechSynthesis) {
                     ttsEngine = 'browser';
                     status.textContent = '🔊 Audio navegador';
                 } else {
                     status.textContent = '❌ Audio no disponible';
                 }
-            } catch(e) { status.textContent = '❌ Error de audio'; }
+            } catch(e) { 
+                status.textContent = '❌ Error de audio'; 
+            }
         }
 
 
