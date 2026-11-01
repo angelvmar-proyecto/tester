@@ -2,64 +2,136 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Traductor Ventas Pro</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 16px; background: #f5f5f5; }
-        .card { background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .btn { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; margin: 4px; }
-        .btn-primary { background: #2563eb; color: white; }
-        .btn-danger { background: #ef4444; color: white; }
-        .btn-success { background: #10b981; color: white; }
-        textarea, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-        textarea { height: 80px; }
-        .phrase-item { background: white; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #ddd; }
-        .phrase-es { font-weight: bold; margin-bottom: 6px; }
-        .phrase-en { color: #666; font-style: italic; margin-bottom: 10px; }
-        .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+        :root { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --text-sec: #64748b; --primary: #2563eb; --danger: #ef4444; --success: #10b981; --border: #e2e8f0; --shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        [data-theme="dark"] { --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --text-sec: #94a3b8; --primary: #3b82f6; --border: #334155; --shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 16px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header h1 { margin: 0; font-size: 1.25rem; font-weight: 700; }
+        .btn-icon { background: var(--card); border: 1px solid var(--border); color: var(--text); width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
+        .card { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow); }
+        .controls { display: flex; gap: 8px; margin-bottom: 12px; }
+        select, input, textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 15px; }
+        textarea { height: 80px; resize: none; }
+        .btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; font-size: 14px; }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-secondary { background: var(--border); color: var(--text); }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-purple { background: #8b5cf6; color: white; }
+        .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab { padding: 8px 16px; border-radius: 20px; background: var(--card); border: 1px solid var(--border); white-space: nowrap; cursor: pointer; font-size: 13px; }
+        .tab.active { background: var(--primary); color: white; }
+        .phrase-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; position: relative; }
+        .phrase-es { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--text); border-left: 3px solid var(--primary); padding-left: 10px; padding-right: 40px; }
+        .phrase-en { font-size: 14px; color: var(--text-sec); font-style: italic; margin-bottom: 12px; border-left: 3px solid var(--success); padding-left: 10px; }
+        .phrase-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .phrase-actions .btn { padding: 10px; font-size: 13px; min-width: 60px; flex: none; }
+        .fav-btn { position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--border); padding: 0; width: 32px; height: 32px; }
+        .fav-btn.active { color: #f59e0b; }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--bg); padding: 12px 24px; border-radius: 25px; font-size: 14px; font-weight: 500; opacity: 0; transition: all 0.3s ease; z-index: 1000; max-width: 90%; text-align: center; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .audio-status { text-align: center; padding: 8px; background: var(--bg); border-radius: 8px; margin-bottom: 12px; font-size: 13px; color: var(--text-sec); }
+        .empty-msg { text-align: center; padding: 30px; color: var(--text-sec); font-size: 14px; }
+        .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-bg.show { display: flex; }
+        .modal { background: var(--card); border-radius: 16px; padding: 20px; width: 100%; max-width: 400px; }
+        .modal h3 { margin: 0 0 16px 0; font-size: 1.1rem; }
+        .modal label { display: block; font-size: 13px; color: var(--text-sec); margin-top: 10px; margin-bottom: 4px; }
+        .modal .btn { margin-top: 14px; }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>🎙️ Ventas Pro</h1>
+        <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">🌙</button>
+    </div>
+
     <div class="card">
-        <h2>🎙️ Traductor</h2>
-        <select id="sourceLang">
-            <option value="es">Español</option>
-            <option value="en">Inglés</option>
-            <option value="fr">Francés</option>
-            <option value="de">Alemán</option>
-            <option value="it">Italiano</option>
-            <option value="pt">Portugués</option>
-            <option value="ru">Ruso</option>
-            <option value="ja">Japonés</option>
-            <option value="zh">Chino</option>
-        </select>
-        <select id="targetLang">
-            <option value="en">Inglés</option>
-            <option value="es">Español</option>
-            <option value="fr">Francés</option>
-            <option value="de">Alemán</option>
-            <option value="it">Italiano</option>
-            <option value="pt">Portugués</option>
-            <option value="ru">Ruso</option>
-            <option value="ja">Japonés</option>
-            <option value="zh">Chino</option>
-        </select>
-        <textarea id="inputText" placeholder="Escribe o usa el micrófono..."></textarea>
+        <div class="audio-status" id="audioStatus">🔊 Inicializando audio...</div>
+        <div class="controls">
+            <select id="sourceLang">
+                <option value="es">🇪🇸 Español</option>
+                <option value="en">🇺🇸 English</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="it">🇮🇹 Italiano</option>
+                <option value="pt">🇵🇹 Português</option>
+                <option value="ru">🇷🇺 Русский</option>
+                <option value="ja">🇯🇵 日本語</option>
+                <option value="zh">🇨🇳 中文</option>
+            </select>
+            <select id="targetLang">
+                <option value="en">🇺🇸 English</option>
+                <option value="es">🇪🇸 Español</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="it">🇮🇹 Italiano</option>
+                <option value="pt">🇵🇹 Português</option>
+                <option value="ru">🇷🇺 Русский</option>
+                <option value="ja">🇯🇵 日本語</option>
+                <option value="zh">🇨🇳 中文</option>
+            </select>
+        </div>
+        <textarea id="inputText" placeholder="Escribe o toca el micrófono..."></textarea>
         <div class="controls">
             <button class="btn btn-danger" onclick="startDictation()">🎤 Hablar</button>
+            <button class="btn btn-purple" onclick="autoDetectAndTranslate()">🌐 Auto-Idioma</button>
             <button class="btn btn-primary" onclick="translateText()">🔄 Traducir</button>
         </div>
         <textarea id="outputText" readonly placeholder="Traducción..."></textarea>
         <div class="controls">
-            <button class="btn btn-success" onclick="speakText()">🔊 Escuchar</button>
-            <button class="btn" onclick="copyText()">📋 Copiar</button>
+            <button class="btn btn-success" onclick="speakOutput()">🔊 Escuchar</button>
+            <button class="btn btn-secondary" onclick="copyText()">📋 Copiar</button>
         </div>
     </div>
 
     <div class="card">
-        <h2>📚 Frases</h2>
-        <input type="text" id="searchInput" placeholder="Buscar..." oninput="filterPhrases()" style="width:100%;padding:10px;margin-bottom:12px;border:1px solid #ddd;border-radius:6px;">
+        <input type="text" id="searchInput" placeholder="🔍 Buscar frase..." oninput="filterPhrases()">
+        <div class="tabs" id="tabsContainer"></div>
         <div id="phrasesList"></div>
+    </div>
+
+    <div class="toast" id="toast">Mensaje</div>
+
+    <div class="modal-bg" id="phraseModal">
+        <div class="modal">
+            <h3 id="modalTitle">➕ Nueva frase</h3>
+            <input type="hidden" id="editId">
+            <label>Español</label>
+            <textarea id="editEs" placeholder="Texto en español..." style="height:60px"></textarea>
+            <label>Inglés</label>
+            <textarea id="editEn" placeholder="Texto en inglés..." style="height:60px"></textarea>
+            <label>Categoría</label>
+            <select id="editCat">
+                <option value="licores">🥃 Licores</option>
+                <option value="perfumes">🌸 Perfumes</option>
+                <option value="cosmeticos">💄 Cosméticos</option>
+                <option value="skincare">🧴 Skincare</option>
+                <option value="moda">👗 Moda</option>
+                <option value="calzado">👟 Calzado</option>
+                <option value="tech">📱 Tech</option>
+                <option value="hogar">🏠 Hogar</option>
+                <option value="joyeria">💍 Joyería</option>
+                <option value="salud">💊 Salud</option>
+                <option value="bienvenida">👋 Bienvenida</option>
+                <option value="objeciones">🛡 Objeciones</option>
+                <option value="cierre">🤝 Cierre</option>
+                <option value="upselling">📈 Upselling</option>
+                <option value="postventa">🔄 Postventa</option>
+                <option value="aeropuerto">✈️ Aeropuerto</option>
+            </select>
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="savePhrase()">Guardar</button>
+            </div>
+        </div>
     </div>
 
     <script src="data1.js"></script>
@@ -70,7 +142,7 @@
     <script src="data6.js"></script>
 
     <script>
-        const phrasesDB = [
+        const builtInPhrases = [
             ...(typeof db1 !== 'undefined' ? db1 : []),
             ...(typeof db2 !== 'undefined' ? db2 : []),
             ...(typeof db3 !== 'undefined' ? db3 : []),
@@ -79,138 +151,395 @@
             ...(typeof db6 !== 'undefined' ? db6 : [])
         ];
 
+        const CATEGORIES = [
+            { id: 'all',        label: '📋 Todas' },
+            { id: 'licores',    label: '🥃 Licores' },
+            { id: 'perfumes',   label: '🌸 Perfumes' },
+            { id: 'cosmeticos', label: '💄 Cosméticos' },
+            { id: 'skincare',   label: '🧴 Skincare' },
+            { id: 'moda',       label: '👗 Moda' },
+            { id: 'calzado',    label: '👟 Calzado' },
+            { id: 'tech',       label: '📱 Tech' },
+            { id: 'hogar',      label: '🏠 Hogar' },
+            { id: 'joyeria',    label: '💍 Joyería' },
+            { id: 'salud',      label: '💊 Salud' },
+            { id: 'bienvenida', label: '👋 Bienvenida' },
+            { id: 'objeciones', label: '🛡 Objeciones' },
+            { id: 'cierre',     label: '🤝 Cierre' },
+            { id: 'upselling',  label: '📈 Upselling' },
+            { id: 'postventa',  label: '🔄 Postventa' },
+            { id: 'aeropuerto', label: '✈️ Aeropuerto' },
+            { id: 'fav',        label: '⭐ Favoritos' },
+            { id: 'custom',     label: '✏️ Mis frases' }
+        ];
+
         let currentCat = 'all';
         let favorites = JSON.parse(localStorage.getItem('favPhrases') || '[]');
+        let customPhrases = JSON.parse(localStorage.getItem('customPhrases') || '[]');
+        let ttsEngine = null;
+        let installedLangs = [];
 
-        function renderPhrases() {
-            const list = document.getElementById('phrasesList');
-            list.innerHTML = '';
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            let filtered = phrasesDB;
-
-            if (currentCat !== 'all') {
-                filtered = filtered.filter(p => p.c === currentCat);
-            }
-
-            if (search) {
-                filtered = filtered.filter(p =>
-                    p.e.toLowerCase().includes(search) ||
-                    p.n.toLowerCase().includes(search)
-                );
-            }
-
-            filtered.forEach(p => {
-                const div = document.createElement('div');
-                div.className = 'phrase-item';
-                div.innerHTML =
-                    '<div class="phrase-es">🇪🇸 ' + p.e + '</div>' +
-                    '<div class="phrase-en">🇺🇸 ' + p.n + '</div>' +
-                    '<div class="controls">' +
-                    '<button class="btn btn-danger" onclick="speak(\'' + p.e.replace(/'/g, "\\'") + '\', \'es-ES\')">🔊 ES</button>' +
-                    '<button class="btn btn-success" onclick="speak(\'' + p.n.replace(/'/g, "\\'") + '\', \'en-US\')">🔊 EN</button>' +
-                    '</div>';
-                list.appendChild(div);
-            });
+        function allPhrases() {
+            return [...builtInPhrases, ...customPhrases];
         }
 
-        async function speak(text, lang) {
-            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.TextToSpeech) {
-                try {
-                    await window.Capacitor.Plugins.TextToSpeech.speak({
+        async function initTTS() {
+            const status = document.getElementById('audioStatus');
+            try {
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.TextToSpeech) {
+                    ttsEngine = window.Capacitor.Plugins.TextToSpeech;
+                    status.textContent = '🔊 Audio nativo listo';
+                    try {
+                        const res = await ttsEngine.getSupportedLanguages();
+                        installedLangs = (res.languages || []).map(l => l.toLowerCase());
+                        console.log('Voces instaladas:', installedLangs.length);
+                    } catch (e) {
+                        console.warn('No se pudo obtener lista de idiomas', e);
+                    }
+                } else if (window.speechSynthesis) {
+                    ttsEngine = 'browser';
+                    status.textContent = '🔊 Audio navegador listo';
+                } else {
+                    status.textContent = '❌ Audio no disponible';
+                }
+            } catch (e) {
+                status.textContent = '❌ Error de audio';
+                console.error(e);
+            }
+        }
+
+        function isLangInstalled(lang) {
+            if (!installedLangs || installedLangs.length === 0) return true;
+            const short = lang.split('-')[0].toLowerCase();
+            return installedLangs.some(l => l === lang.toLowerCase() || l === short || l.startsWith(short));
+        }
+
+        async function speakText(text, lang) {
+            if (!text) { showToast('⚠️ No hay texto'); return; }
+
+            if (!isLangInstalled(lang)) {
+                showToast('⚠️ Voz no instalada. Ajustes > Texto a voz');
+                return;
+            }
+
+            try {
+                if (ttsEngine && typeof ttsEngine === 'object' && ttsEngine.speak) {
+                    await ttsEngine.speak({
                         text: text,
                         lang: lang,
                         rate: 0.9,
                         pitch: 1.0,
                         volume: 1.0
                     });
-                    return;
-                } catch (e) {
-                    console.warn('TTS nativo falló, intentando web speech:', e);
+                    showToast('🔊 Reproduciendo...');
+                } else if (ttsEngine === 'browser' && window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                    const u = new SpeechSynthesisUtterance(text);
+                    u.lang = lang;
+                    u.rate = 0.9;
+                    const voices = window.speechSynthesis.getVoices();
+                    const v = voices.find(x => x.lang.toLowerCase().startsWith(lang.split('-')[0].toLowerCase()));
+                    if (v) u.voice = v;
+                    window.speechSynthesis.speak(u);
+                    showToast('🔊 Reproduciendo...');
+                } else {
+                    showToast('❌ Motor de audio no disponible');
                 }
-            }
-            if (window.speechSynthesis) {
-                window.speechSynthesis.cancel();
-                const u = new SpeechSynthesisUtterance(text);
-                u.lang = lang;
-                u.rate = 0.9;
-                window.speechSynthesis.speak(u);
+            } catch (err) {
+                showToast('❌ Error: ' + err.message);
+                console.error('TTS Error:', err);
             }
         }
 
-        function speakText() {
-            const text = document.getElementById('outputText').value;
-            if (!text) return;
-            const lang = document.getElementById('targetLang').value;
-            const langMap = {
+        function langMap(code) {
+            const m = {
                 'es': 'es-ES', 'en': 'en-US', 'fr': 'fr-FR', 'de': 'de-DE',
                 'it': 'it-IT', 'pt': 'pt-BR', 'ru': 'ru-RU', 'ja': 'ja-JP', 'zh': 'zh-CN'
             };
-            speak(text, langMap[lang] || 'en-US');
+            return m[code] || 'en-US';
+        }
+
+        function speakOutput() {
+            const text = document.getElementById('outputText').value;
+            if (!text || text === 'Traduciendo...' || text.startsWith('Error')) {
+                showToast('⚠️ No hay traducción');
+                return;
+            }
+            speakText(text, langMap(document.getElementById('targetLang').value));
         }
 
         async function translateText() {
             const text = document.getElementById('inputText').value;
-            if (!text) return;
+            if (!text) { showToast('⚠️ Escribe algo'); return; }
 
             const output = document.getElementById('outputText');
             output.value = 'Traduciendo...';
 
-            let source = document.getElementById('sourceLang').value;
-            let target = document.getElementById('targetLang').value;
-
-            const mapLang = (l) => l === 'zh' ? 'zh-CN' : l;
-            source = mapLang(source);
-            target = mapLang(target);
+            const source = document.getElementById('sourceLang').value;
+            const target = document.getElementById('targetLang').value;
 
             try {
                 const res = await fetch('https://api.mymemory.translated.net/get?q=' +
                     encodeURIComponent(text) + '&langpair=' + source + '|' + target);
 
-                if (!res.ok) {
-                    throw new Error('HTTP ' + res.status);
-                }
-
+                if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
 
                 if (data.responseStatus !== 200 && data.responseStatus !== '200') {
-                    throw new Error('API: ' + (data.responseDetails || 'Error desconocido'));
+                    throw new Error(data.responseDetails || 'Error de la API');
                 }
-
                 if (!data.responseData || !data.responseData.translatedText) {
-                    throw new Error('Respuesta vacía de la API');
+                    throw new Error('Respuesta vacía');
                 }
-
                 output.value = data.responseData.translatedText;
-
+                showToast('✅ Traducido');
             } catch (e) {
-                console.error('Error traducción:', e);
+                console.error(e);
                 output.value = 'Error: ' + e.message;
+                showToast('❌ ' + e.message);
             }
         }
 
         function startDictation() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                alert('Micrófono no soportado en este dispositivo');
-                return;
-            }
-            const recognition = new SpeechRecognition();
-            recognition.lang = document.getElementById('sourceLang').value === 'es' ? 'es-ES' : 'en-US';
-            recognition.onresult = (event) => {
-                document.getElementById('inputText').value = event.results[0][0].transcript;
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) { showToast('❌ Micrófono no soportado'); return; }
+            const rec = new SR();
+            rec.lang = langMap(document.getElementById('sourceLang').value);
+            rec.onresult = (e) => {
+                document.getElementById('inputText').value = e.results[0][0].transcript;
+                showToast('✅ Texto capturado');
                 translateText();
             };
-            recognition.onerror = (event) => alert('Error: ' + event.error);
-            recognition.start();
+            rec.onerror = (e) => showToast('❌ ' + e.error);
+            try { rec.start(); } catch(e) { showToast('⚠️ Micrófono activo'); }
+        }
+
+        async function autoDetectAndTranslate() {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) { showToast('❌ Micrófono no soportado'); return; }
+            const langs = ['es-ES','en-US','fr-FR','de-DE','it-IT','pt-BR','ru-RU','ja-JP','zh-CN'];
+            let i = 0;
+            function tryNext() {
+                if (i >= langs.length) { showToast('❌ Idioma no detectado'); return; }
+                const rec = new SR();
+                rec.lang = langs[i];
+                rec.onresult = (e) => {
+                    if (e.results[0][0].confidence > 0.5) {
+                        document.getElementById('inputText').value = e.results[0][0].transcript;
+                        document.getElementById('sourceLang').value = langs[i].split('-')[0];
+                        showToast('✅ ' + langs[i]);
+                        translateText();
+                    } else { i++; tryNext(); }
+                };
+                rec.onerror = () => { i++; tryNext(); };
+                try { rec.start(); } catch(e) { i++; tryNext(); }
+            }
+            tryNext();
         }
 
         function copyText() {
-            const text = document.getElementById('outputText').value;
-            navigator.clipboard.writeText(text);
+            const t = document.getElementById('outputText').value;
+            if (!t || t === 'Traduciendo...' || t.startsWith('Error')) {
+                showToast('⚠️ No hay texto'); return;
+            }
+            navigator.clipboard.writeText(t)
+                .then(() => showToast('📋 Copiado'))
+                .catch(() => showToast('❌ Error'));
+        }
+
+        function buildTabs() {
+            const c = document.getElementById('tabsContainer');
+            c.innerHTML = '';
+            CATEGORIES.forEach(cat => {
+                const b = document.createElement('button');
+                b.className = 'tab' + (cat.id === currentCat ? ' active' : '');
+                b.textContent = cat.label;
+                b.onclick = () => setCategory(cat.id);
+                c.appendChild(b);
+            });
+        }
+
+        function setCategory(id) {
+            currentCat = id;
+            buildTabs();
+            renderPhrases();
+        }
+
+        function escapeHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        function renderPhrases() {
+            const list = document.getElementById('phrasesList');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            let items = allPhrases();
+
+            if (currentCat === 'fav') {
+                items = items.filter(p => favorites.includes(p.i));
+            } else if (currentCat === 'custom') {
+                items = items.filter(p => p._custom);
+            } else if (currentCat !== 'all') {
+                items = items.filter(p => p.c === currentCat);
+            }
+
+            if (search) {
+                items = items.filter(p =>
+                    (p.e || '').toLowerCase().includes(search) ||
+                    (p.n || '').toLowerCase().includes(search)
+                );
+            }
+
+            if (items.length === 0) {
+                list.innerHTML = '<div class="empty-msg">No hay frases en esta categoría.</div>';
+                return;
+            }
+
+            list.innerHTML = '';
+            items.forEach(p => {
+                const isFav = favorites.includes(p.i);
+                const div = document.createElement('div');
+                div.className = 'phrase-item';
+                let html = '<button class="fav-btn ' + (isFav ? 'active' : '') + '" data-fav="' + p.i + '">⭐</button>';
+                html += '<div class="phrase-es">🇪🇸 ' + escapeHtml(p.e) + '</div>';
+                html += '<div class="phrase-en">🇺🇸 ' + escapeHtml(p.n) + '</div>';
+                html += '<div class="phrase-actions">';
+                html += '<button class="btn btn-danger" data-speak-es="' + p.i + '">🔊 ES</button>';
+                html += '<button class="btn btn-success" data-speak-en="' + p.i + '">🔊 EN</button>';
+                if (p._custom) {
+                    html += '<button class="btn btn-warning" data-edit="' + p.i + '">✏️</button>';
+                    html += '<button class="btn btn-secondary" data-del="' + p.i + '">🗑</button>';
+                }
+                html += '</div>';
+                div.innerHTML = html;
+                list.appendChild(div);
+            });
+
+            list.onclick = (e) => {
+                const t = e.target;
+                if (t.hasAttribute('data-fav')) { toggleFav(parseInt(t.getAttribute('data-fav'))); return; }
+                if (t.hasAttribute('data-speak-es')) {
+                    const id = parseInt(t.getAttribute('data-speak-es'));
+                    const ph = allPhrases().find(x => x.i === id);
+                    if (ph) speakText(ph.e, 'es-ES');
+                    return;
+                }
+                if (t.hasAttribute('data-speak-en')) {
+                    const id = parseInt(t.getAttribute('data-speak-en'));
+                    const ph = allPhrases().find(x => x.i === id);
+                    if (ph) speakText(ph.n, 'en-US');
+                    return;
+                }
+                if (t.hasAttribute('data-edit')) {
+                    openEdit(parseInt(t.getAttribute('data-edit')));
+                    return;
+                }
+                if (t.hasAttribute('data-del')) {
+                    if (confirm('¿Borrar esta frase?')) deletePhrase(parseInt(t.getAttribute('data-del')));
+                    return;
+                }
+            };
+        }
+
+        function toggleFav(id) {
+            const idx = favorites.indexOf(id);
+            if (idx >= 0) favorites.splice(idx, 1);
+            else favorites.push(id);
+            localStorage.setItem('favPhrases', JSON.stringify(favorites));
+            renderPhrases();
+            showToast(idx >= 0 ? '☆ Quitado de favoritos' : '⭐ Añadido');
+        }
+
+        function openAdd() {
+            document.getElementById('modalTitle').textContent = '➕ Nueva frase';
+            document.getElementById('editId').value = '';
+            document.getElementById('editEs').value = '';
+            document.getElementById('editEn').value = '';
+            document.getElementById('editCat').value = 'licores';
+            document.getElementById('phraseModal').classList.add('show');
+        }
+
+        function openEdit(id) {
+            const ph = customPhrases.find(x => x.i === id);
+            if (!ph) return;
+            document.getElementById('modalTitle').textContent = '✏️ Editar frase';
+            document.getElementById('editId').value = id;
+            document.getElementById('editEs').value = ph.e;
+            document.getElementById('editEn').value = ph.n;
+            document.getElementById('editCat').value = ph.c;
+            document.getElementById('phraseModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('phraseModal').classList.remove('show');
+        }
+
+        function savePhrase() {
+            const id = document.getElementById('editId').value;
+            const es = document.getElementById('editEs').value.trim();
+            const en = document.getElementById('editEn').value.trim();
+            const cat = document.getElementById('editCat').value;
+
+            if (!es || !en) { showToast('⚠️ Rellena ambos idiomas'); return; }
+
+            if (id) {
+                const idx = customPhrases.findIndex(x => x.i === parseInt(id));
+                if (idx >= 0) {
+                    customPhrases[idx].e = es;
+                    customPhrases[idx].n = en;
+                    customPhrases[idx].c = cat;
+                    showToast('✅ Guardada');
+                }
+            } else {
+                const newId = Date.now();
+                customPhrases.push({ i: newId, c: cat, e: es, n: en, _custom: true });
+                showToast('✅ Añadida');
+            }
+            localStorage.setItem('customPhrases', JSON.stringify(customPhrases));
+            closeModal();
+            renderPhrases();
+        }
+
+        function deletePhrase(id) {
+            customPhrases = customPhrases.filter(x => x.i !== id);
+            localStorage.setItem('customPhrases', JSON.stringify(customPhrases));
+            renderPhrases();
+            showToast('🗑 Borrada');
         }
 
         function filterPhrases() { renderPhrases(); }
 
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(window._tt);
+            window._tt = setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
+
+        const savedTheme = localStorage.getItem('theme') ||
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+        // Botón flotante "Añadir"
+        const addBtn = document.createElement('button');
+        addBtn.textContent = '➕ Añadir frase';
+        addBtn.className = 'btn btn-warning';
+        addBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;width:auto;padding:14px 20px;border-radius:50px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:1500;flex:none;';
+        addBtn.onclick = openAdd;
+        document.body.appendChild(addBtn);
+
+        buildTabs();
+        initTTS();
         renderPhrases();
     </script>
 </body>
