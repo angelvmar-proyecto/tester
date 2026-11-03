@@ -16,7 +16,7 @@
         .controls { display:flex; gap:8px; margin-bottom:10px; }
         select,input,textarea { width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:15px; }
         textarea { height:70px; resize:none; }
-        .btn { flex:1; padding:12px; border-radius:10px; border:none; font-weight:600; cursor:pointer; font-size:13px; }
+        .btn { flex:1; padding:10px 12px; border-radius:10px; border:none; font-weight:600; cursor:pointer; font-size:13px; }
         .btn:active { transform:scale(.96); }
         .btn-primary { background:var(--primary); color:#fff; }
         .btn-danger { background:var(--danger); color:#fff; }
@@ -33,11 +33,11 @@
         .subtab { padding:5px 12px; border-radius:14px; background:var(--bg); border:1px solid var(--border); white-space:nowrap; cursor:pointer; font-size:11px; color:var(--text-sec); }
         .subtab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
         .phrase-item { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:10px; position:relative; }
-        .phrase-es { font-size:14px; font-weight:600; margin-bottom:6px; border-left:3px solid var(--primary); padding-left:8px; padding-right:36px; }
-        .phrase-en { font-size:13px; color:var(--text-sec); font-style:italic; margin-bottom:10px; border-left:3px solid var(--success); padding-left:8px; }
+        .phrase-es { font-size: 13px; color: var(--text-sec); font-style: italic; margin-bottom: 6px; border-left: 3px solid var(--border); padding-left: 8px; padding-right: 36px; }
+        .phrase-en { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 10px; border-left: 3px solid var(--success); padding-left: 8px; }
         .phrase-en.hidden { display:none; }
         .phrase-actions { display:flex; gap:6px; flex-wrap:wrap; }
-        .phrase-actions .btn { padding:9px 10px; font-size:12px; flex:none; min-width:0; }
+        .phrase-actions .btn { padding:7px 8px; font-size:11px; flex:none; min-width:0; }
         .fav-btn { position:absolute; top:8px; right:8px; background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--border); padding:0; width:30px; height:30px; }
         .fav-btn.active { color:var(--warn); }
         .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--text); color:var(--bg); padding:11px 22px; border-radius:25px; font-size:13px; font-weight:500; opacity:0; transition:all .3s; z-index:1000; max-width:90%; text-align:center; }
@@ -457,7 +457,7 @@
                 const b = document.createElement('button');
                 b.className = 'tab' + (cat.id === currentCat ? ' active' : '');
                 b.textContent = cat.label;
-                b.onclick = () => { currentCat = cat.id; currentSub = 'all'; visibleCount = 50; buildTabs(); buildSubtabs(); renderPhrases(); };
+                b.onclick = () => { currentCat = cat.id; currentSub = 'all'; visibleCount = 50; document.getElementById('searchInput').value = ''; buildTabs(); buildSubtabs(); renderPhrases(); };
                 c.appendChild(b);
             });
         }
@@ -472,7 +472,7 @@
                 const b = document.createElement('button');
                 b.className = 'subtab' + (currentSub === sub.id ? ' active' : '');
                 b.textContent = sub.label;
-                b.onclick = () => { currentSub = sub.id; visibleCount = 50; buildSubtabs(); renderPhrases(); };
+                b.onclick = () => { currentSub = sub.id; visibleCount = 50; document.getElementById('searchInput').value = ''; buildSubtabs(); renderPhrases(); };
                 c.appendChild(b);
             });
         }
@@ -561,8 +561,8 @@
                 html_item += '<div class="phrase-es">🇪🇸 ' + highlight(p.e, search) + '</div>';
                 html_item += '<div class="phrase-en">🇺🇸 ' + highlight(p.n, search) + '</div>';
                 html_item += '<div class="phrase-actions">';
-                html_item += '<button class="btn btn-danger" data-speak-es="' + p.i + '">🔊 ES</button>';
-                html_item += '<button class="btn btn-success" data-speak-en="' + p.i + '">🔊 EN</button>';
+                html_item += '<button class="btn btn-secondary" data-speak-es="' + p.i + '" style="opacity:0.8;">🔊 ES</button>';
+                html_item += '<button class="btn btn-success" data-speak-en="' + p.i + '" style="font-weight:bold;font-size:12px;">🔊 EN</button>';
                 if (p._custom) {
                     html_item += '<button class="btn btn-warning" data-edit="' + p.i + '">✏️</button>';
                     html_item += '<button class="btn btn-secondary" data-del="' + p.i + '">🗑</button>';
@@ -596,6 +596,7 @@
             document.getElementById('editId').value = '';
             document.getElementById('editEs').value = '';
             document.getElementById('editEn').value = '';
+            document.getElementById('editCat').value = 'custom';
             document.getElementById('phraseModal').classList.add('show');
         }
 
@@ -649,7 +650,7 @@
                     showToast('✅ Guardada');
                 }
             } else {
-                customPhrases.push({ i: Date.now(), c: cat, e: es, n: en, _custom: true });
+                customPhrases.push({ i: Date.now(), c: (cat === 'custom' ? 'custom' : cat), e: es, n: en, _custom: true });
                 showToast('✅ Añadida');
             }
             localStorage.setItem('customPhrases', JSON.stringify(customPhrases));
@@ -767,7 +768,7 @@
                 <p>🌐 <strong>Auto-Idioma:</strong> Detecta qué idioma habla el cliente.</p>
                 <p>🔄 <strong>Traducir:</strong> Escribe y traduce al instante.</p>
                 <p>📚 <strong>Frases:</strong> Desliza las pestañas de arriba para encontrar la categoría perfecta para tu venta.</p>
-                <p>⭐ <strong>Favoritos:</strong> Guarda las frases que más te sirvan.</p>
+                <p>⭐ <strong>Favoritos:</strong> Toca la estrella en cualquier frase para guardarla.</p>
                 <p>➕ <strong>Añadir:</strong> Crea tus propias frases personalizadas.</p>
             </div>
             <button class="btn btn-primary" style="width:100%;" onclick="closeWelcome()">¡Empezar a vender!</button>
