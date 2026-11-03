@@ -195,6 +195,7 @@
     <script src="data8.js"></script>
     <script src="data9.js"></script>
     <script src="data10.js"></script>
+    <script src="data11.js"></script>
 
     <script>
         const builtInPhrases = [
@@ -207,7 +208,8 @@
             ...(typeof db7 !== 'undefined' ? db7 : []),
             ...(typeof db8 !== 'undefined' ? db8 : []),
             ...(typeof db9 !== 'undefined' ? db9 : []),
-            ...(typeof db10 !== 'undefined' ? db10 : [])
+            ...(typeof db10 !== 'undefined' ? db10 : []),
+            ...(typeof db11 !== 'undefined' ? db11 : [])
         ];
 
         const CATEGORIES = [
@@ -231,6 +233,7 @@
             { id:'timeshare',   label:'🏖 Club Vacacional' },
                         { id:'hostes',      label:'🛎️ Hostes' },
             { id:'concierge',   label:'🛎️ Concierge' },
+                        { id:'renta_autos', label:'🚗 Renta de Autos' },
             { id:'fav',         label:'⭐ Favoritos' },
             { id:'custom',      label:'✏️ Mis frases' }
         ];
@@ -242,6 +245,13 @@
                 {id:'taxfree', label:'🧾 Tax Free'},
                 {id:'precios', label:'💰 Precios'},
                 {id:'producto', label:'🔍 Producto'}
+            ],
+                        renta_autos: [
+                {id:'renta_reserva', label:'📝 Reserva'},
+                {id:'renta_seguros', label:'🛡 Seguros'},
+                {id:'renta_infracciones', label:'🚦 Infracciones'},
+                {id:'renta_percances', label:'💥 Percances'},
+                {id:'renta_quejas', label:'📢 Quejas'}
             ],
             timeshare: [
                 {id:'bienvenida', label:'👋 Bienvenida'},
@@ -541,7 +551,13 @@
                     } else {
                         items = items.filter(p => p.c === currentSub);
                     }
-                } else if (currentCat === 'timeshare') {
+                } else if (currentCat === 'renta_autos') {
+                if (currentSub === 'all') {
+                    items = items.filter(p => ['renta_reserva','renta_seguros','renta_infracciones','renta_percances','renta_quejas'].includes(p.c));
+                } else {
+                    items = items.filter(p => p.c === currentSub);
+                }
+            } else if (currentCat === 'timeshare') {
                     if (currentSub === 'all') {
                         items = items.filter(p => ['bienvenida','calificacion','presentacion','tour','precio','objeciones','cierre','postventa'].includes(p.c) && p.i >= 1051);
                     } else {
