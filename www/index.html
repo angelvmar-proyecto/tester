@@ -59,7 +59,15 @@
         .history-item small { color:var(--text-sec); font-size:11px; }
         .share-btn, .swap-btn { width:100%; margin-top:8px; }
         .fab { position:fixed; bottom:20px; right:20px; width:auto; padding:13px 20px; border-radius:50px; box-shadow:0 4px 12px rgba(0,0,0,.35); z-index:1500; flex:none; font-weight:700; }
-    </style>
+    
+        .conv-box { background: var(--bg); border-radius: 10px; padding: 12px; margin-bottom: 10px; font-size: 14px; border-left: 4px solid var(--primary); }
+        .conv-box.employee { border-left-color: var(--primary); background: rgba(37, 99, 235, 0.05); }
+        .conv-box.client { border-left-color: var(--success); background: rgba(16, 185, 129, 0.05); }
+        .conv-label { font-weight: bold; font-size: 11px; text-transform: uppercase; margin-bottom: 4px; display: block; }
+        .conv-lang { color: var(--text-sec); font-size: 11px; margin-top: 4px; font-style: italic; }
+        .conv-bridge { color: var(--accent); font-weight: bold; margin-top: 4px; }
+        .conv-container { max-height: 50vh; overflow-y: auto; margin-bottom: 15px; padding-right: 5px; }
+</style>
 </head>
 <body>
     <div class="header">
@@ -110,6 +118,7 @@
             <button class="btn btn-secondary" onclick="shareText()">📤 Compartir</button>
         </div>
         <button class="btn btn-secondary share-btn" onclick="openHistory()">🕘 Historial</button>
+        <button class="btn btn-primary" style="width:100%;margin-top:8px;background:#8b5cf6;" onclick="openConversation()">🗣️ Modo Conversación</button>
     </div>
 
     <div class="card">
@@ -783,7 +792,139 @@
         if (!localStorage.getItem('welcomeShown')) {
             setTimeout(() => document.getElementById('welcomeModal').classList.add('show'), 500);
         }
+    
+        const LANG_MASTER = {
+            'es': { tts: 'es-ES', mymemory: 'es', sr: 'es-ES', name: 'Español' },
+            'en': { tts: 'en-US', mymemory: 'en', sr: 'en-US', name: 'Inglés' },
+            'fr': { tts: 'fr-FR', mymemory: 'fr', sr: 'fr-FR', name: 'Francés' },
+            'de': { tts: 'de-DE', mymemory: 'de', sr: 'de-DE', name: 'Alemán' },
+            'it': { tts: 'it-IT', mymemory: 'it', sr: 'it-IT', name: 'Italiano' },
+            'pt': { tts: 'pt-BR', mymemory: 'pt', sr: 'pt-BR', name: 'Portugués' },
+            'ru': { tts: 'ru-RU', mymemory: 'ru', sr: 'ru-RU', name: 'Ruso' },
+            'ja': { tts: 'ja-JP', mymemory: 'ja', sr: 'ja-JP', name: 'Japonés' },
+            'zh-CN': { tts: 'zh-CN', mymemory: 'zh-CN', sr: 'zh-CN', name: 'Chino' },
+            'ko': { tts: 'ko-KR', mymemory: 'ko', sr: 'ko-KR', name: 'Coreano' }
+        };
+        let convHistory = [];
+
+        function openConversation() {
+            document.getElementById('convHistory').innerHTML = '';
+            convHistory = [];
+            document.getElementById('convModal').classList.add('show');
+        }
+
+        function clearConv() {
+            document.getElementById('convHistory').innerHTML = '';
+            convHistory = [];
+            showToast('🧹 Historial limpiado');
+        }
+
+        function addConvBubble(original, translatedES, translatedBridge, translatedClient, isEmployee) {
+            const container = document.getElementById('convHistory');
+            const div = document.createElement('div');
+            div.className = 'conv-box ' + (isEmployee ? 'employee' : 'client');
+            
+            const lbl = document.createElement('span');
+            lbl.className = 'conv-label';
+            lbl.style.color = isEmployee ? 'var(--primary)' : 'var(--success)';
+            lbl.textContent = isEmployee ? '👤 Empleado (ES)' : '👥 Cliente';
+            
+            div.appendChild(lbl);
+            div.innerHTML += `<div>${escapeHtml(original)}</div>`;
+            div.innerHTML += `<div class="conv-bridge">🇺🇸 ${escapeHtml(translatedBridge)}</div>`;
+            div.innerHTML += `<div>🇪🇸 ${escapeHtml(translatedES)}</div>`;
+            if (translatedClient && translatedClient !== translatedBridge) {
+                div.innerHTML += `<div style="color:var(--accent)">🌐 ${escapeHtml(translatedClient)}</div>`;
+            }
+            
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function translateConv(text, source, target) {
+            try {
+                const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + source + '|' + target);
+                const data = await res.json();
+                if (data.responseStatus === 200 && data.responseData && data.responseData.translatedText) {
+                    return data.responseData.translatedText;
+                }
+            } catch(e) {}
+            return '(Error de traducción)';
+        }
+
+        function startConv(who) {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) { showToast('❌ Micrófono no soportado'); return; }
+            
+            const clientLangKey = document.getElementById('clientLang').value;
+            const clientLangObj = LANG_MASTER[clientLangKey] || LANG_MASTER['en'];
+            const rec = new SR();
+            
+            if (who === 'es') {
+                rec.lang = LANG_MASTER['es'].sr;
+                showToast('🎤 Escuchando Español...');
+            } else {
+                rec.lang = clientLangObj.sr;
+                showToast('🎤 Escuchando ' + clientLangObj.name + '...');
+            }
+
+            rec.onresult = async (e) => {
+                const text = e.results[0][0].transcript;
+                showToast('⏳ Traduciendo...');
+                
+                if (who === 'es') {
+                    const en = await translateConv(text, 'es', 'en');
+                    const client = await translateConv(text, 'es', clientLangObj.mymemory);
+                    addConvBubble(text, text, en, client, true);
+                    speakText(text, 'es-ES');
+                } else {
+                    const es = await translateConv(text, clientLangObj.mymemory, 'es');
+                    const en = await translateConv(text, clientLangObj.mymemory, 'en');
+                    addConvBubble(text, es, en, text, false);
+                    speakText(text, clientLangObj.tts);
+                }
+            };
+            rec.onerror = (e) => { if (e.error !== 'aborted') showToast('❌ Error: ' + e.error); };
+            rec.start();
+        }
+
     </script>
+
+
+    <!-- Modo Conversación -->
+    <div class="modal-bg" id="convModal">
+        <div class="modal" style="max-width:500px;">
+            <h3 style="margin-bottom:10px;">🗣️ Modo Conversación</h3>
+            <p style="font-size:12px;color:var(--text-sec);margin-bottom:10px;">Traducción en tiempo real (Español ↔ Inglés ↔ Cliente)</p>
+            
+            <div style="margin-bottom:10px;">
+                <label>Idioma del cliente:</label>
+                <select id="clientLang" style="width:100%;">
+                    <option value="en">🇺🇸 Inglés</option>
+                    <option value="zh-CN">🇨🇳 Chino</option>
+                    <option value="ja">🇯🇵 Japonés</option>
+                    <option value="ko">🇰🇷 Coreano</option>
+                    <option value="ru">🇷🇺 Ruso</option>
+                    <option value="fr">🇫🇷 Francés</option>
+                    <option value="de">🇩🇪 Alemán</option>
+                    <option value="pt">🇵🇹 Portugués</option>
+                    <option value="it">🇮🇹 Italiano</option>
+                </select>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+                <button class="btn btn-primary" style="flex:1;" onclick="startConv('es')">🎤 Yo (ES)</button>
+                <button class="btn btn-success" style="flex:1;" onclick="startConv('client')">🎤 Cliente</button>
+            </div>
+
+            <div class="conv-container" id="convHistory"></div>
+
+            <div style="display:flex;gap:8px;">
+                <button class="btn btn-secondary" onclick="clearConv()">🗑️ Limpiar / Nuevo Cliente</button>
+                <button class="btn btn-danger" onclick="document.getElementById('convModal').classList.remove('show')">Cerrar</button>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
