@@ -131,7 +131,10 @@
             <input type="hidden" id="editId">
             <label>Español</label>
             <textarea id="editEs" style="height:60px"></textarea>
-            <label>Inglés</label>
+            <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px;margin-bottom:3px;">
+                <label style="margin:0;">Inglés</label>
+                <button class="btn btn-purple" onclick="autoTranslateCustom()" style="flex:none;padding:4px 10px;font-size:11px;border-radius:6px;">🌐 Traducir</button>
+            </div>
             <textarea id="editEn" style="height:60px"></textarea>
             <label>Categoría</label>
             <select id="editCat"></select>
@@ -492,34 +495,58 @@
             const searchNorm = normalize(search);
             let items = allPhrases();
 
-            if (currentCat === 'fav') {
-                items = items.filter(p => favorites.includes(p.i));
-            } else if (currentCat === 'custom') {
-                items = items.filter(p => p._custom);
-            } else if (currentCat === 'turista') {
-                if (currentSub === 'all') {
-                    items = items.filter(p => ['regalos','souvenirs','taxfree','precios','producto'].includes(p.c));
-                } else {
-                    items = items.filter(p => p.c === currentSub);
-                }
-            } else if (currentCat === 'timeshare') {
-                if (currentSub === 'all') {
-                    items = items.filter(p => ['bienvenida','calificacion','presentacion','tour','precio','objeciones','cierre','postventa'].includes(p.c) && p.i >= 1051);
-                } else {
-                    items = items.filter(p => p.c === currentSub && p.i >= 1051);
-                }
-            } else if (currentCat !== 'all') {
-                items = items.filter(p => p.c === currentCat);
-            }
-
+            // NUEVA LÓGICA: Si hay búsqueda, buscar en TODAS las frases, sin importar la pestaña
             if (searchNorm) {
-                items = items.filter(p => normalize(p.e).includes(searchNorm) || normalize(p.n).includes(searchNorm));
+                items = items.filter(p => 
+                    normalize(p.e).includes(searchNorm) || 
+                    normalize(p.n).includes(searchNorm) ||
+                    normalize(p.c).includes(searchNorm)
+                );
+                
+                // Ordenar por relevancia (las que empiezan con la palabra o la tienen exacta van primero)
+                items.sort((a, b) => {
+                    const aE = normalize(a.e), bE = normalize(b.e);
+                    const aN = normalize(a.n), bN = normalize(b.n);
+                    
+                    // Prioridad 1: La frase en español empieza con la búsqueda
+                    if (aE.startsWith(searchNorm) && !bE.startsWith(searchNorm)) return -1;
+                    if (bE.startsWith(searchNorm) && !aE.startsWith(searchNorm)) return 1;
+                    // Prioridad 2: La frase en inglés empieza con la búsqueda
+                    if (aN.startsWith(searchNorm) && !bN.startsWith(searchNorm)) return 1;
+                    if (bN.startsWith(searchNorm) && !aN.startsWith(searchNorm)) return -1;
+                    // Prioridad 3: Contiene la palabra
+                    return aE.indexOf(searchNorm) - bE.indexOf(searchNorm);
+                });
+                
+                // Si el usuario busca, mostramos todas las coincidencias (hasta 200) para que no tenga que darle "Cargar más"
+                visibleCount = Math.min(items.length, 200);
+            } else {
+                // Lógica normal por categorías si NO hay búsqueda
+                if (currentCat === 'fav') {
+                    items = items.filter(p => favorites.includes(p.i));
+                } else if (currentCat === 'custom') {
+                    items = items.filter(p => p._custom);
+                } else if (currentCat === 'turista') {
+                    if (currentSub === 'all') {
+                        items = items.filter(p => ['regalos','souvenirs','taxfree','precios','producto'].includes(p.c));
+                    } else {
+                        items = items.filter(p => p.c === currentSub);
+                    }
+                } else if (currentCat === 'timeshare') {
+                    if (currentSub === 'all') {
+                        items = items.filter(p => ['bienvenida','calificacion','presentacion','tour','precio','objeciones','cierre','postventa'].includes(p.c) && p.i >= 1051);
+                    } else {
+                        items = items.filter(p => p.c === currentSub && p.i >= 1051);
+                    }
+                } else if (currentCat !== 'all') {
+                    items = items.filter(p => p.c === currentCat);
+                }
             }
 
             if (countEl) countEl.textContent = items.length ? items.length + ' frases encontradas' : '';
 
             if (items.length === 0) {
-                list.innerHTML = '<div class="empty-msg">No hay frases en esta categoría.</div>';
+                list.innerHTML = '<div class="empty-msg">No hay frases que coincidan con "' + escapeHtml(search) + '".</div>';
                 if (loadBtn) loadBtn.style.display = 'none';
                 return;
             }
@@ -530,18 +557,18 @@
                 const isFav = favorites.includes(p.i);
                 const div = document.createElement('div');
                 div.className = 'phrase-item';
-                let html = '<button class="fav-btn ' + (isFav ? 'active' : '') + '" data-fav="' + p.i + '">⭐</button>';
-                html += '<div class="phrase-es">🇪🇸 ' + highlight(p.e, search) + '</div>';
-                html += '<div class="phrase-en">🇺🇸 ' + highlight(p.n, search) + '</div>';
-                html += '<div class="phrase-actions">';
-                html += '<button class="btn btn-danger" data-speak-es="' + p.i + '">🔊 ES</button>';
-                html += '<button class="btn btn-success" data-speak-en="' + p.i + '">🔊 EN</button>';
+                let html_item = '<button class="fav-btn ' + (isFav ? 'active' : '') + '" data-fav="' + p.i + '">⭐</button>';
+                html_item += '<div class="phrase-es">🇪🇸 ' + highlight(p.e, search) + '</div>';
+                html_item += '<div class="phrase-en">🇺🇸 ' + highlight(p.n, search) + '</div>';
+                html_item += '<div class="phrase-actions">';
+                html_item += '<button class="btn btn-danger" data-speak-es="' + p.i + '">🔊 ES</button>';
+                html_item += '<button class="btn btn-success" data-speak-en="' + p.i + '">🔊 EN</button>';
                 if (p._custom) {
-                    html += '<button class="btn btn-warning" data-edit="' + p.i + '">✏️</button>';
-                    html += '<button class="btn btn-secondary" data-del="' + p.i + '">🗑</button>';
+                    html_item += '<button class="btn btn-warning" data-edit="' + p.i + '">✏️</button>';
+                    html_item += '<button class="btn btn-secondary" data-del="' + p.i + '">🗑</button>';
                 }
-                html += '</div>';
-                div.innerHTML = html;
+                html_item += '</div>';
+                div.innerHTML = html_item;
                 list.appendChild(div);
             });
 
@@ -584,6 +611,30 @@
         }
 
         function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+        
+        async function autoTranslateCustom() {
+            const es = document.getElementById('editEs').value.trim();
+            if (!es) { showToast('⚠️ Escribe algo en español primero'); return; }
+            
+            const btn = event.target.closest('button');
+            const oldText = btn.innerHTML;
+            btn.innerHTML = '⏳...';
+            
+            try {
+                const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(es) + '&langpair=es|en');
+                const data = await res.json();
+                if (data.responseStatus === 200 && data.responseData && data.responseData.translatedText) {
+                    document.getElementById('editEn').value = data.responseData.translatedText;
+                    showToast('✅ Traducido');
+                } else {
+                    showToast('❌ Error al traducir');
+                }
+            } catch(e) {
+                showToast('❌ Error de conexión');
+            }
+            btn.innerHTML = oldText;
+        }
 
         function savePhrase() {
             const id = document.getElementById('editId').value;
