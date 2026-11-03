@@ -181,6 +181,8 @@
     <script src="data6.js"></script>
     <script src="data7.js"></script>
     <script src="data8.js"></script>
+    <script src="data9.js"></script>
+    <script src="data10.js"></script>
 
     <script>
         const builtInPhrases = [
@@ -191,7 +193,9 @@
             ...(typeof db5 !== 'undefined' ? db5 : []),
             ...(typeof db6 !== 'undefined' ? db6 : []),
             ...(typeof db7 !== 'undefined' ? db7 : []),
-            ...(typeof db8 !== 'undefined' ? db8 : [])
+            ...(typeof db8 !== 'undefined' ? db8 : []),
+            ...(typeof db9 !== 'undefined' ? db9 : []),
+            ...(typeof db10 !== 'undefined' ? db10 : [])
         ];
 
         const CATEGORIES = [
@@ -213,6 +217,8 @@
             { id:'aeropuerto',  label:'✈️ Aeropuerto' },
             { id:'turista',     label:'🛍 Turista' },
             { id:'timeshare',   label:'🏖 Club Vacacional' },
+                        { id:'hostes',      label:'🛎️ Hostes' },
+            { id:'concierge',   label:'🛎️ Concierge' },
             { id:'fav',         label:'⭐ Favoritos' },
             { id:'custom',      label:'✏️ Mis frases' }
         ];
@@ -699,5 +705,33 @@
             iniciarApp();
         }
     </script>
+
+    <!-- Modal Tutorial de Bienvenida -->
+    <div class="modal-bg" id="welcomeModal">
+        <div class="modal" style="text-align:center;">
+            <h2 style="color:var(--primary);margin-top:0;">¡Bienvenido!</h2>
+            <p style="font-size:14px;margin-bottom:16px;">Tu asistente personal de ventas y traducción.</p>
+            <div style="text-align:left;font-size:13px;line-height:1.6;margin-bottom:20px;background:var(--bg);padding:12px;border-radius:10px;">
+                <p>🎤 <strong>Hablar:</strong> Traduce tu voz en tiempo real.</p>
+                <p>🌐 <strong>Auto-Idioma:</strong> Detecta qué idioma habla el cliente.</p>
+                <p>🔄 <strong>Traducir:</strong> Escribe y traduce al instante.</p>
+                <p>📚 <strong>Frases:</strong> Desliza las pestañas de arriba para encontrar la categoría perfecta para tu venta.</p>
+                <p>⭐ <strong>Favoritos:</strong> Guarda las frases que más te sirvan.</p>
+                <p>➕ <strong>Añadir:</strong> Crea tus propias frases personalizadas.</p>
+            </div>
+            <button class="btn btn-primary" style="width:100%;" onclick="closeWelcome()">¡Empezar a vender!</button>
+        </div>
+    </div>
+    
+    <script>
+        function closeWelcome() {
+            localStorage.setItem('welcomeShown', 'true');
+            document.getElementById('welcomeModal').classList.remove('show');
+        }
+        if (!localStorage.getItem('welcomeShown')) {
+            setTimeout(() => document.getElementById('welcomeModal').classList.add('show'), 500);
+        }
+    </script>
+
 </body>
 </html>
