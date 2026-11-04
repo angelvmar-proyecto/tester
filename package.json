@@ -13,7 +13,8 @@
   "dependencies": {
     "@capacitor-community/text-to-speech": "^8.0.2",
     "@capacitor/clipboard": "^8.0.1",
-    "@capacitor/haptics": "^8.0.2"
+    "@capacitor/haptics": "^8.0.2",
+    "capacitor-native-settings": "^8.2.0"
   },
   "devDependencies": {
     "@capacitor/android": "^8.6.0",

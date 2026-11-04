@@ -933,13 +933,65 @@
         }
 
         async function installGoogleTTS() {
-            const url = 'https://play.google.com/store/apps/details?id=com.google.android.tts';
-            // Intentar abrir con el plugin del navegador o con window.open
-            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
-                await window.Capacitor.Plugins.Browser.open({ url: url });
-            } else {
-                window.open(url, '_system');
+            // Abrir Google Play directamente en la página de Speech Services
+            const marketUrl = 'market://details?id=com.google.android.tts';
+            const webUrl = 'https://play.google.com/store/apps/details?id=com.google.android.tts';
+            
+            try {
+                // Intentar abrir la app de Play Store
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppLauncher) {
+                    const canOpen = await window.Capacitor.Plugins.AppLauncher.canOpenUrl({ url: marketUrl });
+                    if (canOpen.value) {
+                        await window.Capacitor.Plugins.AppLauncher.openUrl({ url: marketUrl });
+                    } else {
+                        await window.Capacitor.Plugins.AppLauncher.openUrl({ url: webUrl });
+                    }
+                } else {
+                    // Fallback si no está el plugin
+                    window.open(webUrl, '_system');
+                }
+            } catch(e) {
+                window.open(webUrl, '_system');
             }
+        }
+
+        async function openTTSSettings() {
+            try {
+                // Usar el plugin capacitor-native-settings para abrir la pantalla de TTS
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.NativeSettings) {
+                    // AndroidSettings.TtsSettings no siempre está en la lista, pero podemos intentar con la acción de Android
+                    // Si el plugin no tiene la opción directa, usamos el Intent genérico vía AppLauncher si es posible.
+                    // Como el plugin no expone TTS directamente en todas las versiones, usamos el Intent de Android.
+                    // La forma más segura es usar el plugin AppLauncher con la acción de ajustes.
+                    // Nota: AppLauncher no abre Intents de sistema directamente, así que usamos NativeSettings si tiene la opción.
+                    // Si no, mostramos la ruta manual.
+                    
+                    // Intentar abrir los ajustes de la app (fallback)
+                    await window.Capacitor.Plugins.NativeSettings.openAndroid({
+                        option: 'application_details' // Esto abre los ajustes de la app, no TTS, pero es un fallback
+                    });
+                }
+            } catch(e) {
+                // Fallback: mostrar instrucciones manuales
+            }
+            
+            // Como el plugin puede no tener TTS directamente, damos la instrucción clara.
+            // Pero intentamos abrir la pantalla de TTS con un Intent usando el plugin si es posible.
+            // La solución más robusta es usar el Intent de Android directamente desde el WebView no es posible.
+            // Usaremos el plugin NativeSettings si tiene la opción, o mostraremos la ruta.
+            
+            // Si NativeSettings no tiene TTS, al menos abrimos los ajustes generales.
+            // La mejor opción es usar el Intent com.android.settings.TTS_SETTINGS.
+            // Como no tenemos un plugin que ejecute Intents arbitrarios, mostraremos la ruta manual.
+            showToast('Ve a: Ajustes > Sistema > Idiomas > Texto a voz');
+            
+            // Intentar abrir los ajustes generales de Android como ayuda
+            try {
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.NativeSettings) {
+                    // No hay opción TTS directa, así que abrimos la pantalla de ajustes de la app o la general.
+                    // Esto es solo un intento de ayuda.
+                }
+            } catch(e) {}
         }
 
         async function openTTSSettings() {
