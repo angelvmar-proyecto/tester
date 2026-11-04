@@ -168,6 +168,7 @@
                 <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">⬆️ Importar</button>
                 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
             </div>
+            <button class="btn btn-warning" style="margin-top:10px;width:100%;" onclick="openVoiceHelp()">🗣️ Ayuda con las Voces (TTS)</button>
             <button class="btn btn-primary" style="margin-top:10px;width:100%;" onclick="closeModal('aboutModal')">Cerrar</button>
         </div>
     </div>
@@ -925,6 +926,45 @@
             rec.start();
         }
 
+    
+        function openVoiceHelp() {
+            document.getElementById('aboutModal').classList.remove('show');
+            document.getElementById('voiceHelpModal').classList.add('show');
+        }
+
+        async function installGoogleTTS() {
+            const url = 'https://play.google.com/store/apps/details?id=com.google.android.tts';
+            // Intentar abrir con el plugin del navegador o con window.open
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
+                await window.Capacitor.Plugins.Browser.open({ url: url });
+            } else {
+                window.open(url, '_system');
+            }
+        }
+
+        async function openTTSSettings() {
+            // Intentar abrir los ajustes de texto a voz de Android usando un Intent nativo
+            // Como no tenemos un plugin específico, usamos un intent genérico si es posible
+            // o mostramos un mensaje con la ruta manual.
+            try {
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+                    // En algunos dispositivos, podemos intentar abrir los ajustes de TTS
+                    // pero Capacitor no tiene un método directo para esto sin plugins externos.
+                    // Mostramos la ruta manual como respaldo.
+                }
+            } catch(e) {}
+            
+            showToast('Ruta: Ajustes > Sistema > Idiomas > Texto a voz');
+            // Como alternativa, abrimos los ajustes generales de la app si es posible
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
+                try {
+                    await window.Capacitor.Plugins.App.openUrl({ url: 'package:com.android.settings' });
+                } catch(e) {
+                    showToast('No se pudo abrir ajustes. Busca "Texto a voz" en Ajustes.');
+                }
+            }
+        }
+
     </script>
 
 
@@ -981,6 +1021,32 @@
                 <button class="btn btn-secondary" onclick="clearConv()">🗑️ Limpiar / Nuevo Cliente</button>
                 <button class="btn btn-danger" onclick="document.getElementById('convModal').classList.remove('show')">Cerrar</button>
             </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Ayuda de Voz -->
+    <div class="modal-bg" id="voiceHelpModal">
+        <div class="modal">
+            <h3>🗣️ Instalar Voces (TTS)</h3>
+            <p style="font-size:13px;color:var(--text-sec);line-height:1.5;">
+                Si tu teléfono no reproduce el audio en otros idiomas, es porque falta el motor de voz o los paquetes de idioma.
+            </p>
+            
+            <div style="background:var(--bg);padding:12px;border-radius:10px;margin-bottom:12px;font-size:12px;line-height:1.5;">
+                <strong>Paso 1:</strong> Instala o actualiza el motor de Google.<br>
+                <strong>Paso 2:</strong> Descarga los idiomas que necesites.
+            </div>
+
+            <button class="btn btn-primary" style="width:100%;margin-bottom:8px;" onclick="installGoogleTTS()">📥 1. Instalar Speech Services by Google</button>
+            <button class="btn btn-secondary" style="width:100%;margin-bottom:8px;" onclick="openTTSSettings()">⚙️ 2. Abrir Ajustes de Voz</button>
+            
+            <p style="font-size:11px;color:var(--text-sec);margin-top:10px;">
+                * Si el botón de ajustes no abre la pantalla correcta, ve manualmente a: <br>
+                <strong>Ajustes > Sistema > Idiomas > Texto a voz > Instalar datos de voz</strong>.
+            </p>
+            
+            <button class="btn btn-secondary" style="width:100%;margin-top:10px;" onclick="closeModal('voiceHelpModal')">Cerrar</button>
         </div>
     </div>
 
