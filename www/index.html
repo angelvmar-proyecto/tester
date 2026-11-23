@@ -10,7 +10,8 @@ body{background:#f0f4f8;padding:16px;max-width:480px;margin:0 auto;}
 .app-container{background:#fff;border-radius:20px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
 .audio-status{text-align:center;color:#4a5568;padding:10px;margin-bottom:16px;font-size:13px;}
 .lang-row{display:flex;gap:10px;align-items:center;margin-bottom:16px;}
-.lang-box{flex:1;background:#f7f8fa;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between;border:1px solid #e2e8f0;}
+.lang-box{flex:1;background:#f7f8fa;border-radius:12px;padding:12px;border:1px solid #e2e8f0;font-size:15px;font-weight:600;color:#2d3748;-webkit-appearance:none;appearance:none;outline:none;cursor:pointer;background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 12px center;background-size:14px;}
+.lang-box:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,0.15);}
 .lang-flag{font-size:20px;margin-right:8px;}
 .swap-btn{width:44px;height:44px;border-radius:10px;background:#edf2f7;border:none;font-size:18px;cursor:pointer;}
 .textarea-box{background:#f7f8fa;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #e2e8f0;min-height:80px;}
@@ -76,9 +77,15 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 <div class="app-container">
 <div class="audio-status" id="audioStatus">🔊 Inicializando...</div>
 <div class="lang-row">
-<div class="lang-box"><span><span class="lang-flag" id="flagIn">🇪🇸</span> <span id="langInLabel">Español</span></span><span>▼</span></div>
+<select class="lang-box" id="selIn">
+  <option value="es">🇪🇸 Español</option>
+  <option value="en">🇺🇸 English</option>
+</select>
 <button class="swap-btn" id="swapLangs">⇄</button>
-<div class="lang-box"><span><span class="lang-flag" id="flagOut">🇺🇸</span> <span id="langOutLabel">English</span></span><span>▼</span></div>
+<select class="lang-box" id="selOut">
+  <option value="es">🇪🇸 Español</option>
+  <option value="en">🇺🇸 English</option>
+</select>
 </div>
 <div class="textarea-box"><textarea id="inputText" rows="2" class="placeholder" placeholder="Escribe o toca el micrófono..."></textarea></div>
 <div class="btn-row-1">
@@ -180,6 +187,8 @@ const el = {
   historyList:document.getElementById('historyList'),
   historyClose:document.getElementById('historyClose'),
   historyClear:document.getElementById('historyClear'),
+  selIn:document.getElementById('selIn'),
+  selOut:document.getElementById('selOut'),
   flagIn:document.getElementById('flagIn'),
   flagOut:document.getElementById('flagOut'),
   langInLabel:document.getElementById('langInLabel'),
@@ -205,6 +214,7 @@ function loadAllData(){
     ['db15_informacion', safe('db15_informacion')]
   ];
   const collected = [];
+  const seen = new Set();
   let activeSources = 0;
   sources.forEach(([name, arr]) => {
     if(!Array.isArray(arr) || arr.length === 0) return;
@@ -214,7 +224,13 @@ function loadAllData(){
       const text = (item.e || item.es || item.spanish || item.fraseEs || item.espanol || '').toString().trim();
       const translation = (item.n || item.en || item.english || item.traduccionEn || item.ingles || '').toString().trim();
       const category = (item.c || item.categoria || item.category || 'todas').toString().toLowerCase().trim();
-      if(text) collected.push({ text, translation, category, src: name });
+      if(text) {
+        const dedupKey = text.toLowerCase() + '|' + translation.toLowerCase();
+        if (!seen.has(dedupKey)) {
+          seen.add(dedupKey);
+          collected.push({ text, translation, category, src: name });
+        }
+      }
     });
   });
   state.phrases = collected.map((p, idx) => ({ id: idx + 1, ...p }));
@@ -385,12 +401,8 @@ function translateText(text){
 }
 
 function updateLangUI(){
-  const es = { flag:'🇪🇸', label:'Español' };
-  const en = { flag:'🇺🇸', label:'English' };
-  const a = state.inputLang === 'es' ? es : en;
-  const b = state.outputLang === 'es' ? es : en;
-  el.flagIn.textContent = a.flag;  el.langInLabel.textContent = a.label;
-  el.flagOut.textContent = b.flag; el.langOutLabel.textContent = b.label;
+  if(el.selIn) el.selIn.value = state.inputLang;
+  if(el.selOut) el.selOut.value = state.outputLang;
 }
 
 function setupEvents(){
@@ -423,6 +435,10 @@ function setupEvents(){
   el.translateBtn.addEventListener('click', () => {
     const t = el.inputText.value.trim();
     if(!t){ el.outputText.value = 'Escribe algo primero...'; return; }
+    if (state.inputLang !== 'es' && state.inputLang !== 'en') {
+      el.outputText.value = '⚠️ Base de datos solo disponible en Español/Inglés. Para otros idiomas se requiere API externa.';
+      return;
+    }
     haptic();
     el.outputText.value = '🔄 Buscando...';
     setTimeout(() => {
@@ -456,6 +472,14 @@ function setupEvents(){
     else alert('Compartir no disponible');
   });
 
+  el.selIn.addEventListener('change', e => {
+    state.inputLang = e.target.value;
+    haptic();
+  });
+  el.selOut.addEventListener('change', e => {
+    state.outputLang = e.target.value;
+    haptic();
+  });
   el.swapLangs.addEventListener('click', () => {
     [el.inputText.value, el.outputText.value] = [el.outputText.value, el.inputText.value];
     [state.inputLang, state.outputLang] = [state.outputLang, state.inputLang];

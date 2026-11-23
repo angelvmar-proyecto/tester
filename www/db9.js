@@ -1,4 +1,4 @@
-const db9 = [
+const db9_extra = [
 // ====== TIROLÍNAS / ZIPLINE ======
 {i:1201,c:"tirolesa",e:"¿Está listo para volar sobre la selva?",n:"Are you ready to fly over the jungle?"},
 {i:1202,c:"tirolesa",e:"Nuestra tirolesa principal tiene 300 metros de longitud.",n:"Our main zip line is 300 meters long."},
