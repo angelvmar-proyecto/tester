@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Traductor con Frases Guardadas</title>
+<title>Traductor Ventas Pro</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
 body{background:#f0f4f8;padding:16px;max-width:480px;margin:0 auto;}
 .app-container{background:#fff;border-radius:20px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
-.audio-status{text-align:center;color:#4a5568;padding:10px;margin-bottom:16px;}
+.audio-status{text-align:center;color:#4a5568;padding:10px;margin-bottom:16px;font-size:13px;}
 .lang-row{display:flex;gap:10px;align-items:center;margin-bottom:16px;}
 .lang-box{flex:1;background:#f7f8fa;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between;border:1px solid #e2e8f0;}
 .lang-flag{font-size:20px;margin-right:8px;}
@@ -36,27 +36,37 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 .category-tag{padding:8px 14px;background:#f3f4f6;border-radius:20px;font-size:14px;color:#4b5563;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;}
 .category-tag:hover{background:#e5e7eb;}
 .category-tag.active{background:#7c3aed;color:#fff;}
-.saved-list-section{margin-bottom:20px;}
-.saved-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#f9fafb;border-radius:8px;margin-bottom:8px;border-left:3px solid #7c3aed;}
-.saved-text{font-size:14px;color:#374151;}
-.saved-actions{display:flex;gap:6px;}
-.saved-btn{border:none;background:transparent;cursor:pointer;font-size:16px;}
+.saved-list-section{max-height:500px;overflow-y:auto;margin-bottom:20px;padding-right:4px;}
+.saved-list-section::-webkit-scrollbar{width:4px;}
+.saved-list-section::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px;}
+.saved-item{display:flex;justify-content:space-between;align-items:flex-start;padding:12px;background:#f9fafb;border-radius:8px;margin-bottom:8px;border-left:3px solid #7c3aed;gap:8px;}
+.saved-text{font-size:14px;color:#374151;flex:1;word-break:break-word;}
+.saved-text strong{color:#7c3aed;}
+.saved-actions{display:flex;gap:6px;flex-shrink:0;}
+.saved-btn{border:none;background:transparent;cursor:pointer;font-size:16px;padding:2px;}
 .add-btn{width:100%;padding:16px;background:#ff9500;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
 .hidden{display:none!important;}
+.history-modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:999;}
+.history-content{background:#fff;border-radius:16px;padding:20px;width:100%;max-width:400px;max-height:70vh;overflow-y:auto;}
+.history-content h3{margin-bottom:12px;color:#2d3748;}
+.history-item{padding:10px;background:#f9fafb;border-radius:8px;margin-bottom:8px;font-size:14px;color:#374151;word-break:break-word;}
+.history-item small{display:block;color:#9ca3af;margin-top:4px;font-size:11px;}
+.history-close{background:#e5e7eb;border:none;padding:10px;border-radius:8px;width:100%;margin-top:12px;cursor:pointer;font-weight:600;}
+.history-clear{background:#fee2e2;color:#991b1b;border:none;padding:8px;border-radius:8px;width:100%;margin-top:6px;cursor:pointer;font-weight:600;font-size:13px;}
 </style>
 </head>
 <body>
 <div class="app-container">
-<div class="audio-status" id="audioStatus">🔊 Inicializando audio...</div>
+<div class="audio-status" id="audioStatus">🔊 Inicializando...</div>
 <div class="lang-row">
-<div class="lang-box"><span><span class="lang-flag">🇪🇸</span> Español</span><span>▼</span></div>
+<div class="lang-box"><span><span class="lang-flag" id="flagIn">🇪🇸</span> <span id="langInLabel">Español</span></span><span>▼</span></div>
 <button class="swap-btn" id="swapLangs">⇄</button>
-<div class="lang-box"><span><span class="lang-flag">🇺🇸</span> English</span><span>▼</span></div>
+<div class="lang-box"><span><span class="lang-flag" id="flagOut">🇺🇸</span> <span id="langOutLabel">English</span></span><span>▼</span></div>
 </div>
 <div class="textarea-box"><textarea id="inputText" rows="2" class="placeholder" placeholder="Escribe o toca el micrófono..."></textarea></div>
 <div class="btn-row-1">
 <button class="btn btn-red" id="speakBtn">🎙️ Hablar</button>
-<button class="btn btn-purple" id="autoLangBtn">🌐 Auto-Idioma</button>
+<button class="btn btn-purple" id="autoLangBtn">🌐 Auto</button>
 <button class="btn btn-blue" id="translateBtn">🔄 Traducir</button>
 </div>
 <div class="textarea-box"><textarea id="outputText" rows="2" class="placeholder" placeholder="Traducción..." readonly></textarea></div>
@@ -66,28 +76,25 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 <button class="btn-gray" id="shareBtn">⬆️ Compartir</button>
 </div>
 <button class="btn btn-full" id="historyBtn">⏱️ Historial</button>
-<div class="search-box"><span class="search-icon">🔍</span><input type="text" class="search-input" id="searchInput" placeholder="Buscar frase..."></div>
+<div class="search-box"><span class="search-icon">🔍</span><input type="text" class="search-input" id="searchInput" placeholder="Buscar frase ES/EN..."></div>
 <div class="categories-section" id="categoriesSection">
 <div class="categories-title">Categorías</div>
-<div class="categories-grid" id="categoriesGrid">
-<span class="category-tag active" data-category="todas">Todas</span>
-<span class="category-tag" data-category="saludos">Saludos</span>
-<span class="category-tag" data-category="comida">Comida</span>
-<span class="category-tag" data-category="viajes">Viajes</span>
-<span class="category-tag" data-category="emergencias">Emergencias</span>
-<span class="category-tag" data-category="casa">Casa/Diagrama</span>
-<span class="category-tag" data-category="buceo">Buceo</span>
-<span class="category-tag" data-category="cuatrimotos">Cuatrimotos</span>
-<span class="category-tag" data-category="yates">Yates</span>
-<span class="category-tag" data-category="tequila">Tequila</span>
-<span class="category-tag" data-category="paquetes">Paquetes</span>
-<span class="category-tag" data-category="informacion">Información</span>
-</div>
+<div class="categories-grid" id="categoriesGrid"></div>
 </div>
 <div class="saved-list-section" id="savedListSection"><div id="savedList"></div></div>
 <button class="add-btn" id="addPhraseBtn">➕ Añadir frase</button>
 </div>
 
+<div class="history-modal hidden" id="historyModal">
+<div class="history-content">
+<h3>⏱️ Historial</h3>
+<div id="historyList"></div>
+<button class="history-clear" id="historyClear">🗑️ Borrar historial</button>
+<button class="history-close" id="historyClose">Cerrar</button>
+</div>
+</div>
+
+<!-- Orden importante: data1..11, luego db9-tirolesa en adelante. db9.js NO se carga (colisión con data9.js). -->
 <script src="data1.js"></script>
 <script src="data2.js"></script>
 <script src="data3.js"></script>
@@ -99,7 +106,6 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 <script src="data9.js"></script>
 <script src="data10.js"></script>
 <script src="data11.js"></script>
-<script src="db9.js"></script>
 <script src="db9-tirolesa.js"></script>
 <script src="db10-buceo.js"></script>
 <script src="db11-cuatrimotos.js"></script>
@@ -109,72 +115,319 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 <script src="db15-informacion.js"></script>
 
 <script>
-const state={inputLang:'es',outputLang:'en',currentCategory:'todas',phrases:[],searchQuery:''};
-const el={audioStatus:document.getElementById('audioStatus'),inputText:document.getElementById('inputText'),outputText:document.getElementById('outputText'),speakBtn:document.getElementById('speakBtn'),autoLangBtn:document.getElementById('autoLangBtn'),translateBtn:document.getElementById('translateBtn'),listenBtn:document.getElementById('listenBtn'),copyBtn:document.getElementById('copyBtn'),shareBtn:document.getElementById('shareBtn'),historyBtn:document.getElementById('historyBtn'),searchInput:document.getElementById('searchInput'),categoriesGrid:document.getElementById('categoriesGrid'),savedList:document.getElementById('savedList'),addPhraseBtn:document.getElementById('addPhraseBtn'),swapLangs:document.getElementById('swapLangs')};
+const state = { inputLang:'es', outputLang:'en', currentCategory:'todas', phrases:[], searchQuery:'', history:[] };
+const el = {
+  audioStatus:document.getElementById('audioStatus'),
+  inputText:document.getElementById('inputText'),
+  outputText:document.getElementById('outputText'),
+  speakBtn:document.getElementById('speakBtn'),
+  autoLangBtn:document.getElementById('autoLangBtn'),
+  translateBtn:document.getElementById('translateBtn'),
+  listenBtn:document.getElementById('listenBtn'),
+  copyBtn:document.getElementById('copyBtn'),
+  shareBtn:document.getElementById('shareBtn'),
+  historyBtn:document.getElementById('historyBtn'),
+  searchInput:document.getElementById('searchInput'),
+  categoriesGrid:document.getElementById('categoriesGrid'),
+  savedList:document.getElementById('savedList'),
+  addPhraseBtn:document.getElementById('addPhraseBtn'),
+  swapLangs:document.getElementById('swapLangs'),
+  historyModal:document.getElementById('historyModal'),
+  historyList:document.getElementById('historyList'),
+  historyClose:document.getElementById('historyClose'),
+  historyClear:document.getElementById('historyClear'),
+  flagIn:document.getElementById('flagIn'),
+  flagOut:document.getElementById('flagOut'),
+  langInLabel:document.getElementById('langInLabel'),
+  langOutLabel:document.getElementById('langOutLabel')
+};
 
-document.addEventListener('DOMContentLoaded',()=>{
-  el.audioStatus.textContent='✅ Audio listo';
-  loadAllData();
-  renderCategories();
-  renderPhrases();
-  setupEvents();
-});
+const hasCap = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+const Plugins = (window.Capacitor && window.Capacitor.Plugins) || {};
+
+function safe(name){ try { return typeof eval(name) !== 'undefined' ? eval(name) : null; } catch(e){ return null; } }
 
 function loadAllData(){
-  const sources=[
-    ...(window.dataSaludos||[]),
-    ...(window.dataComida||[]),
-    ...(window.dataViajes||[]),
-    ...(window.dataEmergencias||[]),
-    ...(window.dataCasa||[]),
-    ...(window.dataBuceo||[]),
-    ...(window.dataCuatrimotos||[]),
-    ...(window.dataYates||[]),
-    ...(window.dataTequila||[]),
-    ...(window.dataPaquetes||[]),
-    ...(window.dataInformacion||[])
+  const sources = [
+    ['db1',  safe('db1')],
+    ['db2',  safe('db2')],
+    ['db3',  safe('db3')],
+    ['db4',  safe('db4')],
+    ['db5',  safe('db5')],
+    ['db6',  safe('db6')],
+    ['db7',  safe('db7')],
+    ['db8',  safe('db8')],
+    ['db9',  safe('db9')],
+    ['db10', safe('db10')],
+    ['db11', safe('db11')],
+    ['db9_tirolesa',     safe('db9_tirolesa')],
+    ['db10_buceo',       safe('db10_buceo')],
+    ['db11_cuatrimotos', safe('db11_cuatrimotos')],
+    ['db12_yates',       safe('db12_yates')],
+    ['db13_tequila',     safe('db13_tequila')],
+    ['db14_paquetes',    safe('db14_paquetes')],
+    ['db15_informacion', safe('db15_informacion')]
   ];
-  if(sources.length>0){
-    state.phrases=sources.map((item,i)=>({id:i+1,text:item.es||item.spanish||item.fraseEs||'',translation:item.en||item.english||item.traduccionEn||'',category:item.categoria||item.category||'todas'})).filter(p=>p.text);
-  }else{
-    state.phrases=[
-      {id:1,text:'Hola, ¿cómo estás?',translation:'Hello, how are you?',category:'saludos'},
-      {id:2,text:'¿Dónde está el baño?',translation:'Where is the bathroom?',category:'viajes'},
-      {id:3,text:'Necesito ayuda',translation:'I need help',category:'emergencias'}
-    ];
-  }
+  const collected = [];
+  let activeSources = 0;
+  sources.forEach(([name, arr]) => {
+    if(!Array.isArray(arr) || arr.length === 0) return;
+    activeSources++;
+    arr.forEach(item => {
+      if(!item || typeof item !== 'object') return;
+      const text = (item.e || item.es || item.spanish || item.fraseEs || item.espanol || '').toString().trim();
+      const translation = (item.n || item.en || item.english || item.traduccionEn || item.ingles || '').toString().trim();
+      const category = (item.c || item.categoria || item.category || 'todas').toString().toLowerCase().trim();
+      if(text) collected.push({ text, translation, category, src: name });
+    });
+  });
+  state.phrases = collected.map((p, idx) => ({ id: idx + 1, ...p }));
+  el.audioStatus.textContent = '✅ ' + state.phrases.length + ' frases · ' + activeSources + ' fuentes';
+  console.log('[Traductor] frases:', state.phrases.length, 'fuentes:', activeSources);
+}
+
+function allCategories(){
+  const set = new Set();
+  state.phrases.forEach(p => { if(p.category) set.add(p.category); });
+  return Array.from(set).sort();
 }
 
 function renderCategories(){
-  el.categoriesGrid.querySelectorAll('.category-tag').forEach(t=>{
-    t.classList.toggle('active',t.dataset.category===state.currentCategory);
-  });
+  const cats = ['todas', ...allCategories()];
+  el.categoriesGrid.innerHTML = cats.map(c => {
+    const label = c === 'todas' ? 'Todas' : c.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase());
+    const active = c === state.currentCategory ? ' active' : '';
+    return '<span class="category-tag' + active + '" data-category="' + c + '">' + label + '</span>';
+  }).join('');
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 }
 
 function renderPhrases(){
-  let f=state.phrases;
-  if(state.currentCategory!=='todas')f=f.filter(p=>p.category===state.currentCategory);
+  let f = state.phrases;
+  if(state.currentCategory !== 'todas') f = f.filter(p => p.category === state.currentCategory);
   if(state.searchQuery.trim()){
-    const q=state.searchQuery.toLowerCase();
-    f=f.filter(p=>p.text.toLowerCase().includes(q)||p.translation.toLowerCase().includes(q));
+    const q = state.searchQuery.toLowerCase();
+    f = f.filter(p => p.text.toLowerCase().includes(q) || p.translation.toLowerCase().includes(q));
   }
-  el.savedList.innerHTML=f.length?f.map(p=>`<div class="saved-item" data-id="${p.id}"><div class="saved-text"><strong>${p.text}</strong><br>↳ ${p.translation}</div><div class="saved-actions"><button class="saved-btn" title="Usar">📝</button><button class="saved-btn" title="Eliminar">🗑️</button></div></div>`).join(''):'<p style="color:#9ca3af;text-align:center;padding:20px;">No hay frases guardadas</p>';
+  el.savedList.innerHTML = f.length
+    ? f.map(p => '<div class="saved-item" data-id="' + p.id + '"><div class="saved-text"><strong>' + escapeHtml(p.text) + '</strong><br>↳ ' + escapeHtml(p.translation) + '</div><div class="saved-actions"><button class="saved-btn" data-act="use" title="Usar">📝</button><button class="saved-btn" data-act="del" title="Eliminar">🗑️</button></div></div>').join('')
+    : '<p style="color:#9ca3af;text-align:center;padding:20px;">No hay frases en esta categoría</p>';
+}
+
+function loadHistory(){
+  try { state.history = JSON.parse(localStorage.getItem('tvp_history') || '[]'); } catch(e){ state.history = []; }
+}
+function saveHistory(){
+  try { localStorage.setItem('tvp_history', JSON.stringify(state.history.slice(0, 50))); } catch(e){}
+}
+function pushHistory(input, output){
+  if(!input || !output) return;
+  state.history.unshift({ input, output, ts: Date.now() });
+  state.history = state.history.slice(0, 50);
+  saveHistory();
+}
+function renderHistory(){
+  el.historyList.innerHTML = state.history.length
+    ? state.history.map(h => '<div class="history-item"><strong>' + escapeHtml(h.input) + '</strong><br>↳ ' + escapeHtml(h.output) + '<small>' + new Date(h.ts).toLocaleString() + '</small></div>').join('')
+    : '<p style="color:#9ca3af;text-align:center;padding:20px;">Sin historial</p>';
+}
+
+async function ttsSpeak(text, lang){
+  if(!text) return;
+  try {
+    if(hasCap && Plugins.TextToSpeech){
+      await Plugins.TextToSpeech.speak({ text, lang: lang === 'en' ? 'en-US' : 'es-ES', rate: 0.95, category: 'playback' });
+      return;
+    }
+  } catch(e){ console.warn('TTS nativo falló, uso web', e); }
+  if('speechSynthesis' in window){
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang === 'en' ? 'en-US' : 'es-ES';
+    speechSynthesis.speak(u);
+  } else alert('TTS no disponible');
+}
+
+async function clipCopy(text){
+  try { if(hasCap && Plugins.Clipboard){ await Plugins.Clipboard.write({ string: text }); return true; } } catch(e){}
+  try { await navigator.clipboard.writeText(text); return true; } catch(e){ return false; }
+}
+async function haptic(){
+  try { if(hasCap && Plugins.Haptics) await Plugins.Haptics.impact({ style: 'MEDIUM' }); } catch(e){}
+}
+
+function translateText(text){
+  const q = text.toLowerCase().trim();
+  if(!q) return null;
+  const isEsToEn = state.inputLang === 'es';
+  const from = p => isEsToEn ? p.text : p.translation;
+  const to   = p => isEsToEn ? p.translation : p.text;
+
+  let match = state.phrases.find(p => from(p).toLowerCase().trim() === q);
+  if(match) return to(match);
+
+  match = state.phrases.find(p => {
+    const ft = from(p).toLowerCase();
+    return ft.includes(q) || q.includes(ft);
+  });
+  if(match) return to(match);
+
+  // Fallback: probar en la dirección opuesta (por si el usuario cambió de idioma mentalmente)
+  const reverse = state.phrases.find(p => p.translation.toLowerCase().trim() === q || p.text.toLowerCase().trim() === q);
+  if(reverse) return isEsToEn ? (reverse.translation.toLowerCase().trim() === q ? reverse.text : reverse.translation) : reverse.text;
+
+  return null;
+}
+
+function updateLangUI(){
+  const es = { flag:'🇪🇸', label:'Español' };
+  const en = { flag:'🇺🇸', label:'English' };
+  const a = state.inputLang === 'es' ? es : en;
+  const b = state.outputLang === 'es' ? es : en;
+  el.flagIn.textContent = a.flag;  el.langInLabel.textContent = a.label;
+  el.flagOut.textContent = b.flag; el.langOutLabel.textContent = b.label;
 }
 
 function setupEvents(){
-  el.categoriesGrid.addEventListener('click',e=>{if(e.target.classList.contains('category-tag')){state.currentCategory=e.target.dataset.category;renderCategories();renderPhrases();}});
-  el.searchInput.addEventListener('input',e=>{state.searchQuery=e.target.value;renderPhrases();});
-  el.addPhraseBtn.addEventListener('click',()=>{const t=prompt('Frase en español:'),tr=prompt('Traducción al inglés:'),c=prompt('Categoría:')||'todas';if(t&&tr){state.phrases.unshift({id:Date.now(),text:t,translation:tr,category:c});renderPhrases();}});
-  el.translateBtn.addEventListener('click',()=>{const t=el.inputText.value.trim();if(!t){el.outputText.value='Escribe algo primero...';return;}el.outputText.value='🔄 Traduciendo...';setTimeout(()=>{el.outputText.value=t;},800);});
-  el.listenBtn.addEventListener('click',()=>{const t=el.outputText.value;if(t&&'speechSynthesis'in window)speechSynthesis.speak(new SpeechSynthesisUtterance(t));});
-  el.copyBtn.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(el.outputText.value);alert('✅ ¡Copiado!');}catch{}});
-  el.shareBtn.addEventListener('click',()=>{try{navigator.share({text:el.outputText.value});}catch{}});
-  el.swapLangs.addEventListener('click',()=>{[el.inputText.value,el.outputText.value]=[el.outputText.value,el.inputText.value];[state.inputLang,state.outputLang]=[state.outputLang,state.inputLang];});
-  el.historyBtn.addEventListener('click',()=>alert('📋 Historial próximamente'));
-  el.autoLangBtn.addEventListener('click',()=>{el.autoLangBtn.style.background=el.autoLangBtn.style.background==='rgb(16, 185, 129)'?'#7c3aed':'#10b981';alert('🔍 Auto-idioma: ON');});
-  el.speakBtn.addEventListener('click',()=>{if(!('webkitSpeechRecognition'in window))return alert('⚠️ Usa Chrome para voz');const R=new webkitSpeechRecognition();R.lang=state.inputLang;el.speakBtn.style.opacity='0.5';el.inputText.placeholder='🎤 Escuchando...';R.onresult=e=>{el.inputText.value=e.results[0][0].transcript;};R.onend=()=>{el.speakBtn.style.opacity='1';el.inputText.placeholder='Escribe o toca el micrófono...';};R.start();});
-  el.savedList.addEventListener('click',e=>{const i=e.target.closest('.saved-item');if(!i)return;const id=parseInt(i.dataset.id),p=state.phrases.find(x=>x.id===id);if(e.target.title==='📝'){el.inputText.value=p.text;el.outputText.value=p.translation;}else if(e.target.title==='🗑️'&&confirm('¿Eliminar?')){state.phrases=state.phrases.filter(x=>x.id!==id);renderPhrases();}});
+  el.categoriesGrid.addEventListener('click', e => {
+    const tag = e.target.closest('.category-tag');
+    if(!tag) return;
+    state.currentCategory = tag.dataset.category;
+    renderCategories(); renderPhrases();
+  });
+
+  el.searchInput.addEventListener('input', e => {
+    state.searchQuery = e.target.value; renderPhrases();
+  });
+
+  el.addPhraseBtn.addEventListener('click', () => {
+    const t = prompt('Frase en español:');
+    if(!t) return;
+    const tr = prompt('Traducción al inglés:');
+    if(!tr) return;
+    const c = (prompt('Categoría (ej: buceo, yates, custom...):') || 'custom').toLowerCase().trim();
+    state.phrases.unshift({ id: Date.now(), text: t, translation: tr, category: c, src: 'user' });
+    renderCategories(); renderPhrases();
+    haptic();
+  });
+
+  el.translateBtn.addEventListener('click', () => {
+    const t = el.inputText.value.trim();
+    if(!t){ el.outputText.value = 'Escribe algo primero...'; return; }
+    haptic();
+    el.outputText.value = '🔄 Buscando...';
+    setTimeout(() => {
+      const found = translateText(t);
+      if(found){
+        el.outputText.value = found;
+        pushHistory(t, found);
+      } else {
+        el.outputText.value = '⚠️ Frase no encontrada. Añádela con "Añadir frase".';
+      }
+    }, 120);
+  });
+
+  el.listenBtn.addEventListener('click', () => {
+    const t = el.outputText.value;
+    if(t && !t.startsWith('⚠️')) ttsSpeak(t, state.outputLang);
+  });
+
+  el.copyBtn.addEventListener('click', async () => {
+    const t = el.outputText.value;
+    if(!t || t.startsWith('⚠️')) return;
+    const ok = await clipCopy(t);
+    if(ok) haptic();
+    alert(ok ? '✅ Copiado' : '❌ No se pudo copiar');
+  });
+
+  el.shareBtn.addEventListener('click', async () => {
+    const t = el.outputText.value;
+    if(!t || t.startsWith('⚠️')) return;
+    if(navigator.share){
+      try { await navigator.share({ text: t }); } catch(e){}
+    } else alert('Compartir no disponible');
+  });
+
+  el.swapLangs.addEventListener('click', () => {
+    [el.inputText.value, el.outputText.value] = [el.outputText.value, el.inputText.value];
+    [state.inputLang, state.outputLang] = [state.outputLang, state.inputLang];
+    updateLangUI();
+    haptic();
+  });
+
+  el.autoLangBtn.addEventListener('click', () => {
+    const on = el.autoLangBtn.dataset.on === '1';
+    el.autoLangBtn.dataset.on = on ? '0' : '1';
+    el.autoLangBtn.style.background = on ? '#7c3aed' : '#10b981';
+    alert(on ? '🔍 Auto-idioma: OFF' : '🔍 Auto-idioma: ON (requiere API externa para detectar de verdad)');
+    haptic();
+  });
+
+  el.speakBtn.addEventListener('click', () => {
+    const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!Rec) return alert('⚠️ Este WebView no soporta reconocimiento de voz');
+    const R = new Rec();
+    R.lang = state.inputLang === 'es' ? 'es-MX' : 'en-US';
+    R.interimResults = false;
+    el.speakBtn.style.opacity = '0.5';
+    el.inputText.placeholder = '🎤 Escuchando...';
+    R.onresult = e => { el.inputText.value = e.results[0][0].transcript; };
+    R.onerror = () => {};
+    R.onend = () => {
+      el.speakBtn.style.opacity = '1';
+      el.inputText.placeholder = 'Escribe o toca el micrófono...';
+    };
+    try { R.start(); } catch(e){ alert('No se pudo iniciar micrófono'); }
+  });
+
+  el.savedList.addEventListener('click', e => {
+    const btn = e.target.closest('.saved-btn');
+    const item = e.target.closest('.saved-item');
+    if(!item) return;
+    const id = parseInt(item.dataset.id, 10);
+    const p = state.phrases.find(x => x.id === id);
+    if(!p) return;
+    const act = btn ? btn.dataset.act : 'use';
+    if(act === 'use'){
+      el.inputText.value = p.text;
+      el.outputText.value = p.translation;
+      haptic();
+    } else if(act === 'del'){
+      if(confirm('¿Eliminar "' + p.text + '"? (solo en esta sesión)')){
+        state.phrases = state.phrases.filter(x => x.id !== id);
+        renderCategories(); renderPhrases();
+      }
+    }
+  });
+
+  el.historyBtn.addEventListener('click', () => {
+    renderHistory();
+    el.historyModal.classList.remove('hidden');
+  });
+  el.historyClose.addEventListener('click', () => el.historyModal.classList.add('hidden'));
+  el.historyClear.addEventListener('click', () => {
+    if(confirm('¿Borrar todo el historial?')){
+      state.history = [];
+      saveHistory();
+      renderHistory();
+    }
+  });
+  el.historyModal.addEventListener('click', e => {
+    if(e.target === el.historyModal) el.historyModal.classList.add('hidden');
+  });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  el.audioStatus.textContent = hasCap ? '✅ Capacitor nativo' : '✅ Modo web';
+  loadAllData();
+  loadHistory();
+  renderCategories();
+  renderPhrases();
+  updateLangUI();
+  setupEvents();
+});
 </script>
 </body>
 </html>
