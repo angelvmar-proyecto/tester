@@ -5,375 +5,100 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Traductor con Frases Guardadas</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-body { background: #f0f4f8; padding: 16px; max-width: 480px; margin: 0 auto; }
-
-/* Contenedor Principal */
-.app-container { background: #ffffff; border-radius: 20px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-
-/* Audio Estado */
-.audio-status { text-align: center; color: #4a5568; padding: 10px; margin-bottom: 16px; }
-
-/* Selector de Idiomas */
-.lang-row { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
-.lang-box { flex: 1; background: #f7f8fa; border-radius: 12px; padding: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #e2e8f0; }
-.lang-flag { font-size: 20px; margin-right: 8px; }
-.swap-btn { width: 44px; height: 44px; border-radius: 10px; background: #edf2f7; border: none; font-size: 18px; cursor: pointer; }
-
-/* Áreas de Texto */
-.textarea-box { background: #f7f8fa; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #e2e8f0; min-height: 80px; }
-textarea { width: 100%; border: none; background: transparent; font-size: 16px; resize: none; outline: none; color: #2d3748; }
-.placeholder { color: #a0aec0; }
-
-/* Botones Principales */
-.btn-row-1 { display: flex; gap: 10px; margin-bottom: 16px; }
-.btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
-.btn-red { background: #ff4444; color: white; }
-.btn-purple { background: #7c3aed; color: white; }
-.btn-blue { background: #2563eb; color: white; }
-
-.btn-row-2 { display: flex; gap: 10px; margin-bottom: 20px; }
-.btn-green { background: #10b981; color: white; flex: 1.2; }
-.btn-gray { background: #e5e7eb; color: #374151; flex: 1; }
-
-.btn-full { width: 100%; background: #7c3aed; color: white; margin-bottom: 20px; }
-
-/* Buscar Frase */
-.search-box { display: flex; align-items: center; background: #f7f8fa; border-radius: 12px; padding: 14px; margin-bottom: 16px; border: 1px solid #e2e8f0; }
-.search-icon { margin-right: 10px; color: #6b7280; }
-.search-input { border: none; background: transparent; flex: 1; font-size: 16px; outline: none; color: #2d3748; }
-
-/* Categorías */
-.categories-section { background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #e5e7eb; }
-.categories-title { font-size: 15px; font-weight: 600; color: #374151; margin-bottom: 12px; }
-.categories-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.category-tag { padding: 8px 14px; background: #f3f4f6; border-radius: 20px; font-size: 14px; color: #4b5563; cursor: pointer; transition: all 0.2s; }
-.category-tag:hover { background: #e5e7eb; }
-.category-tag.active { background: #7c3aed; color: white; }
-
-/* Lista de Frases Guardadas */
-.saved-list-section { margin-bottom: 20px; }
-.saved-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #7c3aed; }
-.saved-text { font-size: 14px; color: #374151; }
-.saved-actions { display: flex; gap: 6px; }
-.saved-btn { border: none; background: transparent; cursor: pointer; font-size: 16px; }
-
-/* Botón Añadir */
-.add-btn { width: 100%; padding: 16px; background: #ff9500; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-
-.hidden { display: none !important; }
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
+body{background:#f0f4f8;padding:16px;max-width:480px;margin:0 auto;}
+.app-container{background:#fff;border-radius:20px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
+.audio-status{text-align:center;color:#4a5568;padding:10px;margin-bottom:16px;}
+.lang-row{display:flex;gap:10px;align-items:center;margin-bottom:16px;}
+.lang-box{flex:1;background:#f7f8fa;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:space-between;border:1px solid #e2e8f0;}
+.lang-flag{font-size:20px;margin-right:8px;}
+.swap-btn{width:44px;height:44px;border-radius:10px;background:#edf2f7;border:none;font-size:18px;cursor:pointer;}
+.textarea-box{background:#f7f8fa;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #e2e8f0;min-height:80px;}
+textarea{width:100%;border:none;background:transparent;font-size:16px;resize:none;outline:none;color:#2d3748;}
+.placeholder{color:#a0aec0;}
+.btn-row-1{display:flex;gap:10px;margin-bottom:16px;}
+.btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-red{background:#ff4444;color:#fff;}
+.btn-purple{background:#7c3aed;color:#fff;}
+.btn-blue{background:#2563eb;color:#fff;}
+.btn-row-2{display:flex;gap:10px;margin-bottom:20px;}
+.btn-green{background:#10b981;color:#fff;flex:1.2;}
+.btn-gray{background:#e5e7eb;color:#374151;flex:1;}
+.btn-full{width:100%;background:#7c3aed;color:#fff;margin-bottom:20px;}
+.search-box{display:flex;align-items:center;background:#f7f8fa;border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid #e2e8f0;}
+.search-icon{margin-right:10px;color:#6b7280;}
+.search-input{border:none;background:transparent;flex:1;font-size:16px;outline:none;color:#2d3748;}
+.categories-section{background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid #e5e7eb;}
+.categories-title{font-size:15px;font-weight:600;color:#374151;margin-bottom:12px;}
+.categories-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.category-tag{padding:8px 14px;background:#f3f4f6;border-radius:20px;font-size:14px;color:#4b5563;cursor:pointer;transition:all .2s;}
+.category-tag:hover{background:#e5e7eb;}
+.category-tag.active{background:#7c3aed;color:#fff;}
+.saved-list-section{margin-bottom:20px;}
+.saved-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#f9fafb;border-radius:8px;margin-bottom:8px;border-left:3px solid #7c3aed;}
+.saved-text{font-size:14px;color:#374151;}
+.saved-actions{display:flex;gap:6px;}
+.saved-btn{border:none;background:transparent;cursor:pointer;font-size:16px;}
+.add-btn{width:100%;padding:16px;background:#ff9500;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
+.hidden{display:none!important;}
 </style>
 </head>
 <body>
-
 <div class="app-container">
-    <!-- Estado de Audio -->
-    <div class="audio-status" id="audioStatus">🔊 Inicializando audio...</div>
-
-    <!-- Selector de Idiomas -->
-    <div class="lang-row">
-        <div class="lang-box">
-            <span><span class="lang-flag">🇪🇸</span> Español</span>
-            <span>▼</span>
-        </div>
-        <button class="swap-btn" id="swapLangs">⇄</button>
-        <div class="lang-box">
-            <span><span class="lang-flag">🇺🇸</span> English</span>
-            <span>▼</span>
-        </div>
-    </div>
-
-    <!-- Entrada de Texto -->
-    <div class="textarea-box">
-        <textarea id="inputText" rows="2" class="placeholder" placeholder="Escribe o toca el micrófono..."></textarea>
-    </div>
-
-    <!-- Botones: Hablar | Auto-idioma | Traducir -->
-    <div class="btn-row-1">
-        <button class="btn btn-red" id="speakBtn">🎙️ Hablar</button>
-        <button class="btn btn-purple" id="autoLangBtn">🌐 Auto-Idioma</button>
-        <button class="btn btn-blue" id="translateBtn">🔄 Traducir</button>
-    </div>
-
-    <!-- Salida de Traducción -->
-    <div class="textarea-box">
-        <textarea id="outputText" rows="2" class="placeholder" placeholder="Traducción..." readonly></textarea>
-    </div>
-
-    <!-- Botones: Escuchar | Copiar | Compartir -->
-    <div class="btn-row-2">
-        <button class="btn btn-green" id="listenBtn">🔊 Escuchar</button>
-        <button class="btn-gray" id="copyBtn">📋 Copiar</button>
-        <button class="btn-gray" id="shareBtn">⬆️ Compartir</button>
-    </div>
-
-    <button class="btn btn-full" id="historyBtn">⏱️ Historial</button>
-
-    <!-- 🔍 BUSCAR FRASE -->
-    <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="text" class="search-input" id="searchInput" placeholder="Buscar frase...">
-    </div>
-
-    <!-- 📂 CATEGORÍAS -->
-    <div class="categories-section" id="categoriesSection">
-        <div class="categories-title">Categorías</div>
-        <div class="categories-grid" id="categoriesGrid">
-            <span class="category-tag active" data-category="todas">Todas</span>
-            <span class="category-tag" data-category="saludos">Saludos</span>
-            <span class="category-tag" data-category="comida">Comida</span>
-            <span class="category-tag" data-category="viajes">Viajes</span>
-            <span class="category-tag" data-category="emergencias">Emergencias</span>
-            <span class="category-tag" data-category="casa">Casa/Diagrama</span>
-        </div>
-    </div>
-    <!-- 📋 FRASES GUARDADAS -->
-    <div class="saved-list-section" id="savedListSection">
-        <div id="savedList"></div>
-    </div>
-
-    <!-- ➕ BOTÓN AÑADIR -->
-    <button class="add-btn" id="addPhraseBtn">➕ Añadir frase</button>
+<div class="audio-status" id="audioStatus">🔊 Inicializando audio...</div>
+<div class="lang-row">
+<div class="lang-box"><span><span class="lang-flag">🇪🇸</span> Español</span><span>▼</span></div>
+<button class="swap-btn" id="swapLangs">⇄</button>
+<div class="lang-box"><span><span class="lang-flag">🇺🇸</span> English</span><span>▼</span></div>
 </div>
-
+<div class="textarea-box"><textarea id="inputText" rows="2" class="placeholder" placeholder="Escribe o toca el micrófono..."></textarea></div>
+<div class="btn-row-1">
+<button class="btn btn-red" id="speakBtn">🎙️ Hablar</button>
+<button class="btn btn-purple" id="autoLangBtn">🌐 Auto-Idioma</button>
+<button class="btn btn-blue" id="translateBtn">🔄 Traducir</button>
+</div>
+<div class="textarea-box"><textarea id="outputText" rows="2" class="placeholder" placeholder="Traducción..." readonly></textarea></div>
+<div class="btn-row-2">
+<button class="btn btn-green" id="listenBtn">🔊 Escuchar</button>
+<button class="btn-gray" id="copyBtn">📋 Copiar</button>
+<button class="btn-gray" id="shareBtn">⬆️ Compartir</button>
+</div>
+<button class="btn btn-full" id="historyBtn">⏱️ Historial</button>
+<div class="search-box"><span class="search-icon">🔍</span><input type="text" class="search-input" id="searchInput" placeholder="Buscar frase..."></div>
+<div class="categories-section" id="categoriesSection">
+<div class="categories-title">Categorías</div>
+<div class="categories-grid" id="categoriesGrid">
+<span class="category-tag active" data-category="todas">Todas</span>
+<span class="category-tag" data-category="saludos">Saludos</span>
+<span class="category-tag" data-category="comida">Comida</span>
+<span class="category-tag" data-category="viajes">Viajes</span>
+<span class="category-tag" data-category="emergencias">Emergencias</span>
+<span class="category-tag" data-category="casa">Casa/Diagrama</span>
+</div>
+</div>
+<div class="saved-list-section" id="savedListSection"><div id="savedList"></div></div>
+<button class="add-btn" id="addPhraseBtn">➕ Añadir frase</button>
+</div>
 <script>
-// === ESTADO DE LA APLICACIÓN ===
-const state = {
-    inputLang: 'es',
-    outputLang: 'en',
-    currentCategory: 'todas',
-    phrases: [
-        { id: 1, text: 'Hola, ¿cómo estás?', translation: 'Hello, how are you?', category: 'saludos' },
-        { id: 2, text: '¿Dónde está el baño?', translation: 'Where is the bathroom?', category: 'viajes' },
-        { id: 3, text: 'Necesito ayuda', translation: 'I need help', category: 'emergencias' }
-    ],
-    searchQuery: ''
-};
-
-// === ELEMENTOS DEL DOM ===
-const el = {
-    audioStatus: document.getElementById('audioStatus'),
-    inputText: document.getElementById('inputText'),
-    outputText: document.getElementById('outputText'),
-    speakBtn: document.getElementById('speakBtn'),
-    autoLangBtn: document.getElementById('autoLangBtn'),
-    translateBtn: document.getElementById('translateBtn'),
-    listenBtn: document.getElementById('listenBtn'),
-    copyBtn: document.getElementById('copyBtn'),
-    shareBtn: document.getElementById('shareBtn'),
-    historyBtn: document.getElementById('historyBtn'),
-    searchInput: document.getElementById('searchInput'),
-    categoriesGrid: document.getElementById('categoriesGrid'),
-    savedList: document.getElementById('savedList'),
-    addPhraseBtn: document.getElementById('addPhraseBtn'),
-    swapLangs: document.getElementById('swapLangs')
-};
-
-// === INICIALIZACIÓN ===
-document.addEventListener('DOMContentLoaded', () => {
-    el.audioStatus.textContent = '✅ Audio listo';
-    renderCategories();
-    renderPhrases();
-    setupEvents();
-    loadExternalData(); // Carga tus archivos data*.js
-});
-
-// === CARGAR TUS ARCHIVOS EXISTENTES ===
-function loadExternalData() {
-    // Aquí se pueden cargar tus data*.js y db*.js
-    console.log('✅ Archivos de datos listos para usar');
-}
-
-// === RENDERIZAR CATEGORÍAS ===
-function renderCategories() {
-    const tags = el.categoriesGrid.querySelectorAll('.category-tag');
-    tags.forEach(tag => {
-        tag.classList.remove('active');
-        if (tag.dataset.category === state.currentCategory) {
-            tag.classList.add('active');
-        }
-    });
-}
-
-// === RENDERIZAR LISTA DE FRASES ===
-function renderPhrases() {
-    let filtered = state.phrases;
-    
-    if (state.currentCategory !== 'todas') {
-        filtered = filtered.filter(p => p.category === state.currentCategory);
-    }
-    
-    if (state.searchQuery.trim() !== '') {
-        const q = state.searchQuery.toLowerCase();
-        filtered = filtered.filter(p => 
-            p.text.toLowerCase().includes(q) || 
-            p.translation.toLowerCase().includes(q)
-        );
-    }
-
-    if (filtered.length === 0) {
-        el.savedList.innerHTML = '<p style="color:#9ca3af;text-align:center;padding:20px;">No hay frases guardadas</p>';
-        return;
-    }
-
-    el.savedList.innerHTML = filtered.map(phrase => `
-        <div class="saved-item" data-id="${phrase.id}">
-            <div class="saved-text">
-                <strong>${phrase.text}</strong><br>
-                ↳ ${phrase.translation}
-            </div>
-            <div class="saved-actions">
-                <button class="saved-btn" title="Usar">📝</button>
-                <button class="saved-btn" title="Eliminar">🗑️</button>
-            </div>
-        </div>
-    `).join('');
-}
-// === CONFIGURAR EVENTOS ===
-function setupEvents() {
-    // Cambiar categoría
-    el.categoriesGrid.addEventListener('click', (e) => {
-        if (e.target.classList.contains('category-tag')) {
-            state.currentCategory = e.target.dataset.category;
-            renderCategories();
-            renderPhrases();
-        }
-    });
-
-    // Buscar frases
-    el.searchInput.addEventListener('input', (e) => {
-        state.searchQuery = e.target.value;
-        renderPhrases();
-    });
-
-    // Añadir nueva frase
-    el.addPhraseBtn.addEventListener('click', () => {
-        const newText = prompt('Escribe la frase en español:');
-        if (!newText) return;
-        const newTrans = prompt('Traducción al inglés:');
-        if (!newTrans) return;
-        const cat = prompt('Categoría (saludos/comida/viajes/emergencias/casa):') || 'todas';
-        
-        state.phrases.unshift({
-            id: Date.now(),
-            text: newText,
-            translation: newTrans,
-            category: cat
-        });
-        renderPhrases();
-    });
-
-    // Traducir
-    el.translateBtn.addEventListener('click', () => {
-        const text = el.inputText.value.trim();
-        if (!text) {
-            el.outputText.value = 'Escribe algo primero...';
-            return;
-        }
-        el.outputText.value = '🔄 Traduciendo...';
-        setTimeout(() => {
-            el.outputText.value = `[Traducción de: ${text}]`;
-        }, 800);
-    });
-
-    // Escuchar traducción
-    el.listenBtn.addEventListener('click', () => {
-        const text = el.outputText.value;
-        if (!text || text.includes('Traducción') || text.includes('Escribe')) return;
-        if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = state.outputLang;
-            speechSynthesis.speak(utterance);
-        }
-    });
-
-    // Copiar
-    el.copyBtn.addEventListener('click', () => {
-        const text = el.outputText.value;
-        if (!text || text.includes('Traducción') || text.includes('Escribe')) return;
-        navigator.clipboard.writeText(text)
-            .then(() => alert('✅ ¡Copiado!'))
-            .catch(() => alert('No se pudo copiar'));
-    });
-
-    // Compartir
-    el.shareBtn.addEventListener('click', () => {
-        const text = el.outputText.value;
-        if (!text || text.includes('Traducción') || text.includes('Escribe')) return;
-        if (navigator.share) {
-            navigator.share({ title: 'Traductor', text: text });
-        } else {
-            alert('Usa Copiar y pega donde necesites');
-        }
-    });
-
-    // Intercambiar idiomas
-    el.swapLangs.addEventListener('click', () => {
-        [state.inputLang, state.outputLang] = [state.outputLang, state.inputLang];
-        const temp = el.inputText.value;
-        el.inputText.value = el.outputText.value;
-        el.outputText.value = temp;
-    });
-
-    // Historial
-    el.historyBtn.addEventListener('click', () => {
-        alert('📋 Historial — próximamente disponible');
-    });
-
-    // Auto-idioma
-    el.autoLangBtn.addEventListener('click', () => {
-        el.autoLangBtn.style.background = el.autoLangBtn.style.background === 'rgb(16, 185, 129)' ? '#7c3aed' : '#10b981';
-        alert('🔍 Detección de idioma: ACTIVADA');
-    });
-
-    // Hablar (entrada por voz)
-    el.speakBtn.addEventListener('click', () => {
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-            alert('⚠️ Usa Chrome para entrada por voz');
-            return;
-        }
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        recognition.lang = state.inputLang;
-        
-        el.speakBtn.style.opacity = '0.7';
-        el.inputText.placeholder = '🎤 Escuchando...';
-        
-        recognition.onresult = (event) => {
-            const transcript = Array.from(event.results)
-                .map(r => r[0].transcript)
-                .join('');
-            el.inputText.value = transcript;
-        };
-        
-        recognition.onend = () => {
-            el.speakBtn.style.opacity = '1';
-            el.inputText.placeholder = 'Escribe o toca el micrófono...';
-        };
-        
-        recognition.start();
-    });
-
-    // Usar frase guardada
-    el.savedList.addEventListener('click', (e) => {
-        const item = e.target.closest('.saved-item');
-        if (!item) return;
-        const id = parseInt(item.dataset.id);
-        const phrase = state.phrases.find(p => p.id === id);
-        
-        if (e.target.title === '📝') {
-            el.inputText.value = phrase.text;
-            el.outputText.value = phrase.translation;
-        } else if (e.target.title === '🗑️') {
-            if (confirm('¿Eliminar esta frase?')) {
-                state.phrases = state.phrases.filter(p => p.id !== id);
-                renderPhrases();
-            }
-        }
-    });
+const state={inputLang:'es',outputLang:'en',currentCategory:'todas',phrases:[{id:1,text:'Hola, ¿cómo estás?',translation:'Hello, how are you?',category:'saludos'},{id:2,text:'¿Dónde está el baño?',translation:'Where is the bathroom?',category:'viajes'},{id:3,text:'Necesito ayuda',translation:'I need help',category:'emergencias'}],searchQuery:''};
+const el={audioStatus:document.getElementById('audioStatus'),inputText:document.getElementById('inputText'),outputText:document.getElementById('outputText'),speakBtn:document.getElementById('speakBtn'),autoLangBtn:document.getElementById('autoLangBtn'),translateBtn:document.getElementById('translateBtn'),listenBtn:document.getElementById('listenBtn'),copyBtn:document.getElementById('copyBtn'),shareBtn:document.getElementById('shareBtn'),historyBtn:document.getElementById('historyBtn'),searchInput:document.getElementById('searchInput'),categoriesGrid:document.getElementById('categoriesGrid'),savedList:document.getElementById('savedList'),addPhraseBtn:document.getElementById('addPhraseBtn'),swapLangs:document.getElementById('swapLangs')};
+document.addEventListener('DOMContentLoaded',()=>{el.audioStatus.textContent='✅ Audio listo';renderCategories();renderPhrases();setupEvents();console.log('✅ Listo');});
+function renderCategories(){el.categoriesGrid.querySelectorAll('.category-tag').forEach(t=>{t.classList.toggle('active',t.dataset.category===state.currentCategory);});}
+function renderPhrases(){let f=state.phrases;if(state.currentCategory!=='todas')f=f.filter(p=>p.category===state.currentCategory);if(state.searchQuery.trim()){const q=state.searchQuery.toLowerCase();f=f.filter(p=>p.text.toLowerCase().includes(q)||p.translation.toLowerCase().includes(q));}el.savedList.innerHTML=f.length?f.map(p=>`<div class="saved-item" data-id="${p.id}"><div class="saved-text"><strong>${p.text}</strong><br>↳ ${p.translation}</div><div class="saved-actions"><button class="saved-btn" title="Usar">📝</button><button class="saved-btn" title="Eliminar">🗑️</button></div></div>`).join(''):'<p style="color:#9ca3af;text-align:center;padding:20px;">No hay frases guardadas</p>';}
+function setupEvents(){
+el.categoriesGrid.addEventListener('click',e=>{if(e.target.classList.contains('category-tag')){state.currentCategory=e.target.dataset.category;renderCategories();renderPhrases();}});
+el.searchInput.addEventListener('input',e=>{state.searchQuery=e.target.value;renderPhrases();});
+el.addPhraseBtn.addEventListener('click',()=>{const t=prompt('Frase en español:'),tr=prompt('Traducción al inglés:'),c=prompt('Categoría:')||'todas';if(t&&tr){state.phrases.unshift({id:Date.now(),text:t,translation:tr,category:c});renderPhrases();}});
+el.translateBtn.addEventListener('click',()=>{const t=el.inputText.value.trim();if(!t){el.outputText.value='Escribe algo primero...';return;}el.outputText.value='🔄 Traduciendo...';setTimeout(()=>{el.outputText.value=t;},800);});
+el.listenBtn.addEventListener('click',()=>{const t=el.outputText.value;if(t&&'speechSynthesis'in window)speechSynthesis.speak(new SpeechSynthesisUtterance(t));});
+el.copyBtn.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(el.outputText.value);alert('✅ ¡Copiado!');}catch{}});
+el.shareBtn.addEventListener('click',()=>{try{navigator.share({text:el.outputText.value});}catch{}});
+el.swapLangs.addEventListener('click',()=>{[el.inputText.value,el.outputText.value]=[el.outputText.value,el.inputText.value];[state.inputLang,state.outputLang]=[state.outputLang,state.inputLang];});
+el.historyBtn.addEventListener('click',()=>alert('📋 Historial próximamente'));
+el.autoLangBtn.addEventListener('click',()=>{el.autoLangBtn.style.background=el.autoLangBtn.style.background==='rgb(16, 185, 129)'?'#7c3aed':'#10b981';alert('🔍 Auto-idioma: ON');});
+el.speakBtn.addEventListener('click',()=>{if(!('webkitSpeechRecognition'in window))return alert('⚠️ Usa Chrome para voz');const R=new webkitSpeechRecognition();R.lang=state.inputLang;el.speakBtn.style.opacity='0.5';el.inputText.placeholder='🎤 Escuchando...';R.onresult=e=>{el.inputText.value=e.results[0][0].transcript;};R.onend=()=>{el.speakBtn.style.opacity='1';el.inputText.placeholder='Escribe o toca el micrófono...';};R.start();});
+el.savedList.addEventListener('click',e=>{const i=e.target.closest('.saved-item');if(!i)return;const id=parseInt(i.dataset.id),p=state.phrases.find(x=>x.id===id);if(e.target.title==='📝'){el.inputText.value=p.text;el.outputText.value=p.translation;}else if(e.target.title==='🗑️'&&confirm('¿Eliminar?')){state.phrases=state.phrases.filter(x=>x.id!==id);renderPhrases();}});
 }
 </script>
-
 </body>
 </html>
-
