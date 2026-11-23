@@ -16,15 +16,15 @@ body{background:#f0f4f8;padding:16px;max-width:480px;margin:0 auto;}
 .textarea-box{background:#f7f8fa;border-radius:12px;padding:16px;margin-bottom:12px;border:1px solid #e2e8f0;min-height:80px;}
 textarea{width:100%;border:none;background:transparent;font-size:16px;resize:none;outline:none;color:#2d3748;}
 .placeholder{color:#a0aec0;}
-.btn-row-1{display:flex;gap:10px;margin-bottom:16px;}
-.btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-row-1{display:flex;gap:8px;margin-bottom:12px;}
+.btn{flex:1;padding:10px 6px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;}
 .btn-red{background:#ff4444;color:#fff;}
 .btn-purple{background:#7c3aed;color:#fff;}
 .btn-blue{background:#2563eb;color:#fff;}
-.btn-row-2{display:flex;gap:10px;margin-bottom:20px;}
+.btn-row-2{display:flex;gap:8px;margin-bottom:16px;}
 .btn-green{background:#10b981;color:#fff;flex:1.2;}
 .btn-gray{background:#e5e7eb;color:#374151;flex:1;}
-.btn-full{width:100%;background:#7c3aed;color:#fff;margin-bottom:20px;}
+.btn-full{width:100%;background:#7c3aed;color:#fff;padding:11px;font-size:14px;margin-bottom:16px;}
 .search-box{display:flex;align-items:center;background:#f7f8fa;border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid #e2e8f0;}
 .search-icon{margin-right:10px;color:#6b7280;}
 .search-input{border:none;background:transparent;flex:1;font-size:16px;outline:none;color:#2d3748;}
@@ -51,14 +51,14 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 .group-count{background:#ede9fe;color:#7c3aed;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700;letter-spacing:0;}
 
 /* === Item de frase === */
-.saved-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#f9fafb;border-radius:10px;margin-bottom:8px;border-left:3px solid #7c3aed;gap:10px;transition:background .15s;}
+.saved-item{display:flex;flex-direction:column;align-items:stretch;padding:12px 14px;background:#f9fafb;border-radius:10px;margin-bottom:8px;border-left:3px solid #7c3aed;gap:8px;transition:background .15s;}
 .saved-item:hover{background:#f3f4f6;}
-.saved-text{font-size:14px;color:#374151;flex:1;word-break:break-word;line-height:1.45;}
+.saved-text{font-size:13px;color:#374151;word-break:break-word;line-height:1.4;}
 .saved-text .es{font-weight:600;color:#1f2937;}
-.saved-text .en{color:#6b7280;font-size:13px;display:block;margin-top:3px;}
-.saved-actions{display:flex;gap:2px;flex-shrink:0;align-items:center;}
-.saved-btn{border:none;background:transparent;cursor:pointer;font-size:14px;padding:5px 4px;min-width:26px;line-height:1;border-radius:6px;transition:background .15s;}
-.saved-btn:hover{background:#e5e7eb;}
+.saved-text .en{color:#6b7280;font-size:12px;display:block;margin-top:2px;}
+.saved-actions{display:flex;gap:6px;align-self:flex-end;align-items:center;}
+.saved-btn{border:1px solid #d8b4fe;background:#f3e8ff;color:#7c3aed;cursor:pointer;font-size:12px;font-weight:700;padding:5px 9px;border-radius:8px;line-height:1;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;min-width:32px;}
+.saved-btn:hover{background:#e9d5ff;}
 
 .add-btn{width:100%;padding:16px;background:#ff9500;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
 .hidden{display:none!important;}
