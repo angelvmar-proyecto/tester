@@ -33,26 +33,43 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 .categories-grid{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
 .categories-grid::-webkit-scrollbar{height:4px;}
 .categories-grid::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px;}
-.category-tag{padding:8px 14px;background:#f3f4f6;border-radius:20px;font-size:14px;color:#4b5563;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;}
-.category-tag:hover{background:#e5e7eb;}
-.category-tag.active{background:#7c3aed;color:#fff;}
-.saved-list-section{max-height:500px;overflow-y:auto;margin-bottom:20px;padding-right:4px;}
-.saved-list-section::-webkit-scrollbar{width:4px;}
-.saved-list-section::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px;}
-.saved-item{display:flex;justify-content:space-between;align-items:flex-start;padding:12px;background:#f9fafb;border-radius:8px;margin-bottom:8px;border-left:3px solid #7c3aed;gap:8px;}
-.saved-text{font-size:14px;color:#374151;flex:1;word-break:break-word;}
-.saved-text strong{color:#7c3aed;}
-.saved-actions{display:flex;gap:6px;flex-shrink:0;}
-.saved-btn{border:none;background:transparent;cursor:pointer;font-size:16px;padding:2px;}
+.category-tag{padding:8px 14px;background:#f3f4f6;border-radius:20px;font-size:14px;color:#4b5563;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:6px;font-weight:500;}
+.category-tag:hover{background:#e5e7eb;transform:translateY(-1px);}
+.category-tag.active{background:#7c3aed;color:#fff;box-shadow:0 4px 12px rgba(124,58,237,0.35);}
+.category-tag .cat-count{font-size:11px;opacity:0.65;font-weight:600;}
+.category-tag.active .cat-count{opacity:0.9;}
+
+.saved-list-section{margin-bottom:20px;}
+
+/* === Grupos (vista "Todas") === */
+.phrase-group{margin-bottom:8px;}
+.group-header{display:flex;align-items:center;gap:8px;padding:12px 4px 8px;margin-top:12px;font-size:13px;font-weight:700;color:#4b5563;text-transform:uppercase;letter-spacing:0.6px;border-bottom:2px solid #ede9fe;margin-bottom:10px;cursor:pointer;}
+.group-header:first-child{margin-top:0;}
+.group-header:hover{color:#7c3aed;}
+.group-icon{font-size:18px;}
+.group-name{flex:1;}
+.group-count{background:#ede9fe;color:#7c3aed;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700;letter-spacing:0;}
+
+/* === Item de frase === */
+.saved-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#f9fafb;border-radius:10px;margin-bottom:8px;border-left:3px solid #7c3aed;gap:10px;transition:background .15s;}
+.saved-item:hover{background:#f3f4f6;}
+.saved-text{font-size:14px;color:#374151;flex:1;word-break:break-word;line-height:1.45;}
+.saved-text .es{font-weight:600;color:#1f2937;}
+.saved-text .en{color:#6b7280;font-size:13px;display:block;margin-top:3px;}
+.saved-actions{display:flex;gap:4px;flex-shrink:0;}
+.saved-btn{border:none;background:transparent;cursor:pointer;font-size:16px;padding:4px;border-radius:6px;transition:background .15s;}
+.saved-btn:hover{background:#e5e7eb;}
+
 .add-btn{width:100%;padding:16px;background:#ff9500;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
 .hidden{display:none!important;}
 .history-modal{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:999;}
 .history-content{background:#fff;border-radius:16px;padding:20px;width:100%;max-width:400px;max-height:70vh;overflow-y:auto;}
 .history-content h3{margin-bottom:12px;color:#2d3748;}
-.history-item{padding:10px;background:#f9fafb;border-radius:8px;margin-bottom:8px;font-size:14px;color:#374151;word-break:break-word;}
+.history-item{padding:10px;background:#f9fafb;border-radius:8px;margin-bottom:8px;font-size:14px;color:#374151;word-break:break-word;border-left:3px solid #10b981;}
 .history-item small{display:block;color:#9ca3af;margin-top:4px;font-size:11px;}
 .history-close{background:#e5e7eb;border:none;padding:10px;border-radius:8px;width:100%;margin-top:12px;cursor:pointer;font-weight:600;}
 .history-clear{background:#fee2e2;color:#991b1b;border:none;padding:8px;border-radius:8px;width:100%;margin-top:6px;cursor:pointer;font-weight:600;font-size:13px;}
+.empty-state{color:#9ca3af;text-align:center;padding:24px;font-size:14px;}
 </style>
 </head>
 <body>
@@ -94,7 +111,7 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 </div>
 </div>
 
-<!-- Orden importante: data1..11, luego db9-tirolesa en adelante. db9.js NO se carga (colisión con data9.js). -->
+<!-- db9.js NO se carga (colisiona con data9.js: ambos declaran const db9). -->
 <script src="data1.js"></script>
 <script src="data2.js"></script>
 <script src="data3.js"></script>
@@ -115,7 +132,34 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 <script src="db15-informacion.js"></script>
 
 <script>
-const state = { inputLang:'es', outputLang:'en', currentCategory:'todas', phrases:[], searchQuery:'', history:[] };
+const state = { inputLang:'es', outputLang:'en', currentCategory:'todas', phrases:[], searchQuery:'', history:[], collapsed:{} };
+
+const CATEGORY_META = {
+  licores:       { icon:'🥃', label:'Licores' },
+  skincare:      { icon:'💆', label:'Skincare' },
+  tech:          { icon:'📱', label:'Tech' },
+  salud:         { icon:'💊', label:'Salud' },
+  cierre:        { icon:'💳', label:'Cierre' },
+  aeropuerto:    { icon:'✈️', label:'Aeropuerto' },
+  regalos:       { icon:'🎁', label:'Regalos' },
+  bienvenida:    { icon:'👋', label:'Bienvenida' },
+  hostes:        { icon:'🛎️', label:'Hostes' },
+  tirolesa:      { icon:'🪂', label:'Tirolesa' },
+  buceo:         { icon:'🤿', label:'Buceo' },
+  cuatrimotos:   { icon:'🏍️', label:'Cuatrimotos' },
+  yates:         { icon:'⛵', label:'Yates' },
+  tequila:       { icon:'🥂', label:'Tequila' },
+  paquetes:      { icon:'📦', label:'Paquetes' },
+  informacion:   { icon:'ℹ️', label:'Información' },
+  concierge:     { icon:'🎩', label:'Concierge' },
+  renta_reserva: { icon:'🚗', label:'Renta/Reserva' },
+  custom:        { icon:'⭐', label:'Personalizadas' }
+};
+function catMeta(c){
+  if(CATEGORY_META[c]) return CATEGORY_META[c];
+  return { icon:'📁', label: String(c||'otras').replace(/_/g,' ').replace(/\b\w/g, l=>l.toUpperCase()) };
+}
+
 const el = {
   audioStatus:document.getElementById('audioStatus'),
   inputText:document.getElementById('inputText'),
@@ -144,28 +188,20 @@ const el = {
 
 const hasCap = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 const Plugins = (window.Capacitor && window.Capacitor.Plugins) || {};
-
 function safe(name){ try { return typeof eval(name) !== 'undefined' ? eval(name) : null; } catch(e){ return null; } }
 
 function loadAllData(){
   const sources = [
-    ['db1',  safe('db1')],
-    ['db2',  safe('db2')],
-    ['db3',  safe('db3')],
-    ['db4',  safe('db4')],
-    ['db5',  safe('db5')],
-    ['db6',  safe('db6')],
-    ['db7',  safe('db7')],
-    ['db8',  safe('db8')],
-    ['db9',  safe('db9')],
-    ['db10', safe('db10')],
-    ['db11', safe('db11')],
-    ['db9_tirolesa',     safe('db9_tirolesa')],
-    ['db10_buceo',       safe('db10_buceo')],
+    ['db1', safe('db1')], ['db2', safe('db2')], ['db3', safe('db3')],
+    ['db4', safe('db4')], ['db5', safe('db5')], ['db6', safe('db6')],
+    ['db7', safe('db7')], ['db8', safe('db8')], ['db9', safe('db9')],
+    ['db10', safe('db10')], ['db11', safe('db11')],
+    ['db9_tirolesa', safe('db9_tirolesa')],
+    ['db10_buceo', safe('db10_buceo')],
     ['db11_cuatrimotos', safe('db11_cuatrimotos')],
-    ['db12_yates',       safe('db12_yates')],
-    ['db13_tequila',     safe('db13_tequila')],
-    ['db14_paquetes',    safe('db14_paquetes')],
+    ['db12_yates', safe('db12_yates')],
+    ['db13_tequila', safe('db13_tequila')],
+    ['db14_paquetes', safe('db14_paquetes')],
     ['db15_informacion', safe('db15_informacion')]
   ];
   const collected = [];
@@ -183,38 +219,105 @@ function loadAllData(){
   });
   state.phrases = collected.map((p, idx) => ({ id: idx + 1, ...p }));
   el.audioStatus.textContent = '✅ ' + state.phrases.length + ' frases · ' + activeSources + ' fuentes';
-  console.log('[Traductor] frases:', state.phrases.length, 'fuentes:', activeSources);
 }
 
 function allCategories(){
-  const set = new Set();
-  state.phrases.forEach(p => { if(p.category) set.add(p.category); });
-  return Array.from(set).sort();
+  const map = {};
+  state.phrases.forEach(p => { map[p.category] = (map[p.category] || 0) + 1; });
+  return map;
 }
 
 function renderCategories(){
-  const cats = ['todas', ...allCategories()];
-  el.categoriesGrid.innerHTML = cats.map(c => {
-    const label = c === 'todas' ? 'Todas' : c.replace(/_/g,' ').replace(/\b\w/g, l => l.toUpperCase());
+  const counts = allCategories();
+  const cats = Object.keys(counts).sort((a,b) => counts[b] - counts[a]);
+  const total = state.phrases.length;
+  const html = ['todas', ...cats].map(c => {
     const active = c === state.currentCategory ? ' active' : '';
-    return '<span class="category-tag' + active + '" data-category="' + c + '">' + label + '</span>';
+    const meta = c === 'todas' ? { icon:'📚', label:'Todas' } : catMeta(c);
+    const count = c === 'todas' ? total : counts[c];
+    return '<span class="category-tag' + active + '" data-category="' + c + '">'
+      + '<span>' + meta.icon + '</span><span>' + meta.label + '</span>'
+      + '<span class="cat-count">' + count + '</span></span>';
   }).join('');
+  el.categoriesGrid.innerHTML = html;
 }
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 }
 
-function renderPhrases(){
-  let f = state.phrases;
-  if(state.currentCategory !== 'todas') f = f.filter(p => p.category === state.currentCategory);
-  if(state.searchQuery.trim()){
-    const q = state.searchQuery.toLowerCase();
-    f = f.filter(p => p.text.toLowerCase().includes(q) || p.translation.toLowerCase().includes(q));
+function phraseItemHTML(p){
+  return '<div class="saved-item" data-id="' + p.id + '">'
+    + '<div class="saved-text"><span class="es">' + escapeHtml(p.text) + '</span>'
+    + '<span class="en">↳ ' + escapeHtml(p.translation) + '</span></div>'
+    + '<div class="saved-actions">'
+    + '<button class="saved-btn" data-act="use" title="Usar">📝</button>'
+    + '<button class="saved-btn" data-act="del" title="Eliminar">🗑️</button>'
+    + '</div></div>';
+}
+
+function groupHTML(cat, items){
+  const meta = catMeta(cat);
+  const collapsed = !!state.collapsed[cat];
+  const arrow = collapsed ? '▸' : '▾';
+  let html = '<div class="phrase-group" data-group="' + cat + '">';
+  html += '<div class="group-header" data-toggle="' + cat + '">'
+        + '<span class="group-icon">' + meta.icon + '</span>'
+        + '<span class="group-name">' + arrow + ' ' + meta.label + '</span>'
+        + '<span class="group-count">' + items.length + '</span></div>';
+  if(!collapsed){
+    html += items.map(phraseItemHTML).join('');
   }
-  el.savedList.innerHTML = f.length
-    ? f.map(p => '<div class="saved-item" data-id="' + p.id + '"><div class="saved-text"><strong>' + escapeHtml(p.text) + '</strong><br>↳ ' + escapeHtml(p.translation) + '</div><div class="saved-actions"><button class="saved-btn" data-act="use" title="Usar">📝</button><button class="saved-btn" data-act="del" title="Eliminar">🗑️</button></div></div>').join('')
-    : '<p style="color:#9ca3af;text-align:center;padding:20px;">No hay frases en esta categoría</p>';
+  html += '</div>';
+  return html;
+}
+
+function renderPhrases(){
+  const q = state.searchQuery.trim().toLowerCase();
+  let visible = state.phrases;
+
+  // 1) Filtro por categoría
+  if(state.currentCategory !== 'todas'){
+    visible = visible.filter(p => p.category === state.currentCategory);
+  }
+  // 2) Filtro por búsqueda
+  if(q){
+    visible = visible.filter(p =>
+      p.text.toLowerCase().includes(q) || p.translation.toLowerCase().includes(q)
+    );
+  }
+
+  if(visible.length === 0){
+    el.savedList.innerHTML = '<p class="empty-state">No hay frases que coincidan</p>';
+    return;
+  }
+
+  // Modo "Todas" sin búsqueda → agrupado
+  if(state.currentCategory === 'todas' && !q){
+    const groups = {};
+    visible.forEach(p => { (groups[p.category] = groups[p.category] || []).push(p); });
+    // Ordenar grupos por cantidad descendente
+    const order = Object.keys(groups).sort((a,b) => groups[b].length - groups[a].length);
+    el.savedList.innerHTML = order.map(cat => groupHTML(cat, groups[cat])).join('');
+    return;
+  }
+
+  // Modo categoría específica o búsqueda → plano, con cabecera de grupo si es categoría
+  let html = '';
+  if(state.currentCategory !== 'todas'){
+    const meta = catMeta(state.currentCategory);
+    html += '<div class="group-header" style="cursor:default;">'
+          + '<span class="group-icon">' + meta.icon + '</span>'
+          + '<span class="group-name">' + meta.label + '</span>'
+          + '<span class="group-count">' + visible.length + '</span></div>';
+  } else if(q){
+    html += '<div class="group-header" style="cursor:default;">'
+          + '<span class="group-icon">🔍</span>'
+          + '<span class="group-name">Resultados</span>'
+          + '<span class="group-count">' + visible.length + '</span></div>';
+  }
+  html += visible.map(phraseItemHTML).join('');
+  el.savedList.innerHTML = html;
 }
 
 function loadHistory(){
@@ -232,7 +335,7 @@ function pushHistory(input, output){
 function renderHistory(){
   el.historyList.innerHTML = state.history.length
     ? state.history.map(h => '<div class="history-item"><strong>' + escapeHtml(h.input) + '</strong><br>↳ ' + escapeHtml(h.output) + '<small>' + new Date(h.ts).toLocaleString() + '</small></div>').join('')
-    : '<p style="color:#9ca3af;text-align:center;padding:20px;">Sin historial</p>';
+    : '<p class="empty-state">Sin historial</p>';
 }
 
 async function ttsSpeak(text, lang){
@@ -249,7 +352,6 @@ async function ttsSpeak(text, lang){
     speechSynthesis.speak(u);
   } else alert('TTS no disponible');
 }
-
 async function clipCopy(text){
   try { if(hasCap && Plugins.Clipboard){ await Plugins.Clipboard.write({ string: text }); return true; } } catch(e){}
   try { await navigator.clipboard.writeText(text); return true; } catch(e){ return false; }
@@ -274,7 +376,6 @@ function translateText(text){
   });
   if(match) return to(match);
 
-  // Fallback: probar en la dirección opuesta (por si el usuario cambió de idioma mentalmente)
   const reverse = state.phrases.find(p => p.translation.toLowerCase().trim() === q || p.text.toLowerCase().trim() === q);
   if(reverse) return isEsToEn ? (reverse.translation.toLowerCase().trim() === q ? reverse.text : reverse.translation) : reverse.text;
 
@@ -295,11 +396,14 @@ function setupEvents(){
     const tag = e.target.closest('.category-tag');
     if(!tag) return;
     state.currentCategory = tag.dataset.category;
-    renderCategories(); renderPhrases();
+    renderCategories();
+    renderPhrases();
+    haptic();
   });
 
   el.searchInput.addEventListener('input', e => {
-    state.searchQuery = e.target.value; renderPhrases();
+    state.searchQuery = e.target.value;
+    renderPhrases();
   });
 
   el.addPhraseBtn.addEventListener('click', () => {
@@ -309,7 +413,8 @@ function setupEvents(){
     if(!tr) return;
     const c = (prompt('Categoría (ej: buceo, yates, custom...):') || 'custom').toLowerCase().trim();
     state.phrases.unshift({ id: Date.now(), text: t, translation: tr, category: c, src: 'user' });
-    renderCategories(); renderPhrases();
+    renderCategories();
+    renderPhrases();
     haptic();
   });
 
@@ -345,9 +450,8 @@ function setupEvents(){
   el.shareBtn.addEventListener('click', async () => {
     const t = el.outputText.value;
     if(!t || t.startsWith('⚠️')) return;
-    if(navigator.share){
-      try { await navigator.share({ text: t }); } catch(e){}
-    } else alert('Compartir no disponible');
+    if(navigator.share){ try { await navigator.share({ text: t }); } catch(e){} }
+    else alert('Compartir no disponible');
   });
 
   el.swapLangs.addEventListener('click', () => {
@@ -361,7 +465,7 @@ function setupEvents(){
     const on = el.autoLangBtn.dataset.on === '1';
     el.autoLangBtn.dataset.on = on ? '0' : '1';
     el.autoLangBtn.style.background = on ? '#7c3aed' : '#10b981';
-    alert(on ? '🔍 Auto-idioma: OFF' : '🔍 Auto-idioma: ON (requiere API externa para detectar de verdad)');
+    alert(on ? '🔍 Auto-idioma: OFF' : '🔍 Auto-idioma: ON (requiere API externa)');
     haptic();
   });
 
@@ -382,7 +486,15 @@ function setupEvents(){
     try { R.start(); } catch(e){ alert('No se pudo iniciar micrófono'); }
   });
 
+  // Click en item / en header de grupo (colapsar)
   el.savedList.addEventListener('click', e => {
+    const header = e.target.closest('.group-header[data-toggle]');
+    if(header){
+      const cat = header.dataset.toggle;
+      state.collapsed[cat] = !state.collapsed[cat];
+      renderPhrases();
+      return;
+    }
     const btn = e.target.closest('.saved-btn');
     const item = e.target.closest('.saved-item');
     if(!item) return;
@@ -397,26 +509,18 @@ function setupEvents(){
     } else if(act === 'del'){
       if(confirm('¿Eliminar "' + p.text + '"? (solo en esta sesión)')){
         state.phrases = state.phrases.filter(x => x.id !== id);
-        renderCategories(); renderPhrases();
+        renderCategories();
+        renderPhrases();
       }
     }
   });
 
-  el.historyBtn.addEventListener('click', () => {
-    renderHistory();
-    el.historyModal.classList.remove('hidden');
-  });
+  el.historyBtn.addEventListener('click', () => { renderHistory(); el.historyModal.classList.remove('hidden'); });
   el.historyClose.addEventListener('click', () => el.historyModal.classList.add('hidden'));
   el.historyClear.addEventListener('click', () => {
-    if(confirm('¿Borrar todo el historial?')){
-      state.history = [];
-      saveHistory();
-      renderHistory();
-    }
+    if(confirm('¿Borrar todo el historial?')){ state.history = []; saveHistory(); renderHistory(); }
   });
-  el.historyModal.addEventListener('click', e => {
-    if(e.target === el.historyModal) el.historyModal.classList.add('hidden');
-  });
+  el.historyModal.addEventListener('click', e => { if(e.target === el.historyModal) el.historyModal.classList.add('hidden'); });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
