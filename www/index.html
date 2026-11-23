@@ -56,8 +56,8 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 .saved-text{font-size:14px;color:#374151;flex:1;word-break:break-word;line-height:1.45;}
 .saved-text .es{font-weight:600;color:#1f2937;}
 .saved-text .en{color:#6b7280;font-size:13px;display:block;margin-top:3px;}
-.saved-actions{display:flex;gap:4px;flex-shrink:0;}
-.saved-btn{border:none;background:transparent;cursor:pointer;font-size:16px;padding:4px;border-radius:6px;transition:background .15s;}
+.saved-actions{display:flex;gap:2px;flex-shrink:0;align-items:center;}
+.saved-btn{border:none;background:transparent;cursor:pointer;font-size:14px;padding:5px 4px;min-width:26px;line-height:1;border-radius:6px;transition:background .15s;}
 .saved-btn:hover{background:#e5e7eb;}
 
 .add-btn{width:100%;padding:16px;background:#ff9500;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
@@ -251,6 +251,8 @@ function phraseItemHTML(p){
     + '<div class="saved-text"><span class="es">' + escapeHtml(p.text) + '</span>'
     + '<span class="en">↳ ' + escapeHtml(p.translation) + '</span></div>'
     + '<div class="saved-actions">'
+    + '<button class="saved-btn" data-act="say-es" title="ES">[ES]</button>'
+    + '<button class="saved-btn" data-act="say-en" title="EN">[EN]</button>'
     + '<button class="saved-btn" data-act="use" title="Usar">📝</button>'
     + '<button class="saved-btn" data-act="del" title="Eliminar">🗑️</button>'
     + '</div></div>';
@@ -502,7 +504,13 @@ function setupEvents(){
     const p = state.phrases.find(x => x.id === id);
     if(!p) return;
     const act = btn ? btn.dataset.act : 'use';
-    if(act === 'use'){
+    if(act === 'say-es'){
+      ttsSpeak(p.text, 'es');
+      haptic();
+    } else if(act === 'say-en'){
+      ttsSpeak(p.translation, 'en');
+      haptic();
+    } else if(act === 'use'){
       el.inputText.value = p.text;
       el.outputText.value = p.translation;
       haptic();
