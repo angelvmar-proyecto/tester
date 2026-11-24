@@ -55,11 +55,15 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 .saved-item{display:flex;flex-direction:column;align-items:stretch;padding:12px 14px;background:#f9fafb;border-radius:10px;margin-bottom:8px;border-left:3px solid #7c3aed;gap:8px;transition:background .15s;}
 .saved-item:hover{background:#f3f4f6;}
 .saved-text{font-size:13px;color:#374151;word-break:break-word;line-height:1.4;}
-.saved-text .es{font-weight:600;color:#1f2937;}
-.saved-text .en{color:#6b7280;font-size:12px;display:block;margin-top:2px;}
+.saved-text .es{font-size:13px;color:#6b7280;display:block;margin-top:4px;line-height:1.3;}
+.saved-text .en{font-size:16px;font-weight:600;color:#1f2937;display:block;line-height:1.4;}
 .saved-actions{display:flex;gap:6px;align-self:flex-end;align-items:center;}
-.saved-btn{border:1px solid #d8b4fe;background:#f3e8ff;color:#7c3aed;cursor:pointer;font-size:12px;font-weight:700;padding:5px 9px;border-radius:8px;line-height:1;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;min-width:32px;}
-.saved-btn:hover{background:#e9d5ff;}
+.saved-btn{border:none;cursor:pointer;font-size:13px;font-weight:700;padding:8px 12px;border-radius:10px;line-height:1;transition:all .15s;display:inline-flex;align-items:center;justify-content:center;gap:4px;}
+.btn-en{background:#2563eb;color:#fff;box-shadow:0 2px 6px rgba(37,99,235,0.3);}
+.btn-es{background:#ea580c;color:#fff;box-shadow:0 2px 6px rgba(234,88,12,0.3);}
+.saved-btn[data-act="use"], .saved-btn[data-act="del"]{background:#f3f4f6;color:#374151;}
+
+.saved-btn:active{transform:scale(0.95);}
 
 .add-btn{width:100%;padding:16px;background:#ff9500;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;}
 .hidden{display:none!important;}
@@ -80,11 +84,19 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 <select class="lang-box" id="selIn">
   <option value="es">🇪🇸 Español</option>
   <option value="en">🇺🇸 English</option>
+  <option value="fr">🇫🇷 Français</option>
+  <option value="pt">🇧🇷 Português</option>
+  <option value="it">🇮🇹 Italiano</option>
+  <option value="de">🇩🇪 Deutsch</option>
 </select>
 <button class="swap-btn" id="swapLangs">⇄</button>
 <select class="lang-box" id="selOut">
   <option value="es">🇪🇸 Español</option>
   <option value="en">🇺🇸 English</option>
+  <option value="fr">🇫🇷 Français</option>
+  <option value="pt">🇧🇷 Português</option>
+  <option value="it">🇮🇹 Italiano</option>
+  <option value="de">🇩🇪 Deutsch</option>
 </select>
 </div>
 <div class="textarea-box"><textarea id="inputText" rows="2" class="placeholder" placeholder="Escribe o toca el micrófono..."></textarea></div>
@@ -264,11 +276,13 @@ function escapeHtml(s){
 
 function phraseItemHTML(p){
   return '<div class="saved-item" data-id="' + p.id + '">'
-    + '<div class="saved-text"><span class="es">' + escapeHtml(p.text) + '</span>'
-    + '<span class="en">↳ ' + escapeHtml(p.translation) + '</span></div>'
+    + '<div class="saved-text">'
+    + '<span class="en">' + escapeHtml(p.translation) + '</span>'
+    + '<span class="es">' + escapeHtml(p.text) + '</span>'
+    + '</div>'
     + '<div class="saved-actions">'
-    + '<button class="saved-btn" data-act="say-es" title="ES">[ES]</button>'
-    + '<button class="saved-btn" data-act="say-en" title="EN">[EN]</button>'
+    + '<button class="saved-btn btn-en" data-act="say-en" title="Escuchar inglés">🇺🇸 EN</button>'
+    + '<button class="saved-btn btn-es" data-act="say-es" title="Escuchar español">🇪🇸 ES</button>'
     + '<button class="saved-btn" data-act="use" title="Usar">📝</button>'
     + '<button class="saved-btn" data-act="del" title="Eliminar">🗑️</button>'
     + '</div></div>';
