@@ -150,6 +150,7 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 <script src="db14-paquetes.js"></script>
 <script src="db15-informacion.js"></script>
 <script src="db16-extra.js"></script>
+<script src="db17-extra.js"></script>
 
 <script>
 const state = { inputLang:'es', outputLang:'en', currentCategory:'todas', phrases:[], searchQuery:'', history:[], collapsed:{} };
@@ -225,7 +226,8 @@ function loadAllData(){
     ['db13_tequila', safe('db13_tequila')],
     ['db14_paquetes', safe('db14_paquetes')],
     ['db15_informacion', safe('db15_informacion')],
-    ['db16_extra', safe('db16_extra')]
+    ['db16_extra', safe('db16_extra')],
+    ['db17_extra', safe('db17_extra')]
   ];
   const collected = [];
   const seen = new Set();
