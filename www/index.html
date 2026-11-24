@@ -149,6 +149,7 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 <script src="db13-tequila.js"></script>
 <script src="db14-paquetes.js"></script>
 <script src="db15-informacion.js"></script>
+<script src="db16-extra.js"></script>
 
 <script>
 const state = { inputLang:'es', outputLang:'en', currentCategory:'todas', phrases:[], searchQuery:'', history:[], collapsed:{} };
@@ -223,7 +224,8 @@ function loadAllData(){
     ['db12_yates', safe('db12_yates')],
     ['db13_tequila', safe('db13_tequila')],
     ['db14_paquetes', safe('db14_paquetes')],
-    ['db15_informacion', safe('db15_informacion')]
+    ['db15_informacion', safe('db15_informacion')],
+    ['db16_extra', safe('db16_extra')]
   ];
   const collected = [];
   const seen = new Set();
@@ -283,7 +285,7 @@ function phraseItemHTML(p){
     + '<div class="saved-actions">'
     + '<button class="saved-btn btn-en" data-act="say-en" title="Escuchar inglés">🇺🇸 EN</button>'
     + '<button class="saved-btn btn-es" data-act="say-es" title="Escuchar español">🇪🇸 ES</button>'
-    + '<button class="saved-btn" data-act="use" title="Usar">📝</button>'
+    + '<button class="saved-btn" data-act="use" title="Llevar arriba">⬆️</button>'
     + '<button class="saved-btn" data-act="del" title="Eliminar">🗑️</button>'
     + '</div></div>';
 }
@@ -574,6 +576,7 @@ function setupEvents(){
     } else if(act === 'use'){
       el.inputText.value = p.text;
       el.outputText.value = p.translation;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       haptic();
     } else if(act === 'del'){
       if(confirm('¿Eliminar "' + p.text + '"? (solo en esta sesión)')){
