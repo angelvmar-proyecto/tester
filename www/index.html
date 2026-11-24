@@ -432,24 +432,47 @@ function setupEvents(){
     haptic();
   });
 
-  el.translateBtn.addEventListener('click', () => {
+  el.translateBtn.addEventListener('click', async () => {
     const t = el.inputText.value.trim();
     if(!t){ el.outputText.value = 'Escribe algo primero...'; return; }
-    if (state.inputLang !== 'es' && state.inputLang !== 'en') {
-      el.outputText.value = '⚠️ Base de datos solo disponible en Español/Inglés. Para otros idiomas se requiere API externa.';
-      return;
-    }
     haptic();
-    el.outputText.value = '🔄 Buscando...';
-    setTimeout(() => {
+    
+    el.outputText.value = '🔄 Buscando en base de datos...';
+    
+    // 1. Intentar buscar en la base de datos local (solo ES <-> EN)
+    if ((state.inputLang === 'es' || state.inputLang === 'en') && (state.outputLang === 'es' || state.outputLang === 'en')) {
       const found = translateText(t);
       if(found){
         el.outputText.value = found;
         pushHistory(t, found);
-      } else {
-        el.outputText.value = '⚠️ Frase no encontrada. Añádela con "Añadir frase".';
+        return;
       }
-    }, 120);
+    }
+    
+    // 2. Si no está en la DB o es otro idioma, usar la API de Google Translate
+    el.outputText.value = '🌐 Traduciendo con Google...';
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${state.inputLang}&tl=${state.outputLang}&dt=t&q=${encodeURIComponent(t)}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      let translatedText = '';
+      if (data && data[0]) {
+        data[0].forEach(item => {
+          if (item[0]) translatedText += item[0];
+        });
+      }
+      
+      if (translatedText) {
+        el.outputText.value = translatedText;
+        pushHistory(t, translatedText);
+      } else {
+        el.outputText.value = '⚠️ No se pudo traducir.';
+      }
+    } catch (e) {
+      console.error(e);
+      el.outputText.value = '❌ Error de red. Revisa tu conexión a internet.';
+    }
   });
 
   el.listenBtn.addEventListener('click', () => {
