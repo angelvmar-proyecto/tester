@@ -111,6 +111,7 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 <button class="btn-gray" id="copyBtn">📋 Copiar</button>
 <button class="btn-gray" id="shareBtn">⬆️ Compartir</button>
 </div>
+<button class="btn btn-full" style="background:#059669;margin-bottom:8px;" id="playAllBtn">🔊 Escuchar Todo</button>
 <button class="btn btn-full" id="historyBtn">⏱️ Historial</button>
 <div class="search-box"><span class="search-icon">🔍</span><input type="text" class="search-input" id="searchInput" placeholder="Buscar frase ES/EN..."></div>
 <div class="categories-section" id="categoriesSection">
@@ -206,6 +207,7 @@ const el = {
   copyBtn:document.getElementById('copyBtn'),
   shareBtn:document.getElementById('shareBtn'),
   historyBtn:document.getElementById('historyBtn'),
+  playAllBtn:document.getElementById('playAllBtn'),
   searchInput:document.getElementById('searchInput'),
   categoriesGrid:document.getElementById('categoriesGrid'),
   profileDeli:document.getElementById('profileDeli'),
@@ -400,10 +402,13 @@ async function ttsSpeak(text, lang){
     }
   } catch(e){ console.warn('TTS nativo falló, uso web', e); }
   if('speechSynthesis' in window){
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = lang === 'en' ? 'en-US' : 'es-ES';
-    speechSynthesis.speak(u);
-  } else alert('TTS no disponible');
+    return new Promise((resolve) => {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = lang === 'en' ? 'en-US' : 'es-ES';
+      u.onend = resolve;
+      speechSynthesis.speak(u);
+    });
+  }
 }
 async function clipCopy(text){
   try { if(hasCap && Plugins.Clipboard){ await Plugins.Clipboard.write({ string: text }); return true; } } catch(e){}
@@ -441,6 +446,57 @@ function updateLangUI(){
 }
 
 function setupEvents(){
+  let continuousTimer = null;
+  let isPlayingAll = false;
+
+  function stopContinuous() {
+    isPlayingAll = false;
+    if (continuousTimer) clearTimeout(continuousTimer);
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (hasCap && Plugins.TextToSpeech) { try { Plugins.TextToSpeech.stop(); } catch(e){} }
+    if (el.playAllBtn) {
+      el.playAllBtn.textContent = '🔊 Escuchar Todo';
+      el.playAllBtn.style.background = '#059669';
+    }
+  }
+
+  el.playAllBtn.addEventListener('click', async () => {
+    if (isPlayingAll) {
+      stopContinuous();
+      return;
+    }
+    
+    const visible = getVisiblePhrases();
+    if (visible.length === 0) return alert('No hay frases para reproducir.');
+
+    isPlayingAll = true;
+    el.playAllBtn.textContent = '⏹️ Detener';
+    el.playAllBtn.style.background = '#ef4444';
+    haptic();
+
+    for (let i = 0; i < visible.length; i++) {
+      if (!isPlayingAll) break;
+      
+      const p = visible[i];
+      
+      // Scroll suave a la frase actual
+      const itemEl = document.querySelector('.saved-item[data-id="' + p.id + '"]');
+      if (itemEl) itemEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Leer la frase en Inglés
+      await ttsSpeak(p.translation, 'en');
+      
+      if (!isPlayingAll) break;
+      
+      // Esperar 3 segundos
+      await new Promise(resolve => {
+        continuousTimer = setTimeout(resolve, 3000);
+      });
+    }
+
+    if (isPlayingAll) stopContinuous(); // Al terminar naturalmente
+  });
+
   el.categoriesGrid.addEventListener('click', e => {
     const tag = e.target.closest('.category-tag');
     if(!tag) return;
