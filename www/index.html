@@ -156,6 +156,7 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 <script src="db16-extra.js"></script>
 <script src="db17-extra.js"></script>
 <script src="db18-extra.js"></script>
+<script src="db19-hotel.js"></script>
 
 <script>
 const state = { inputLang:'es', outputLang:'en', currentCategory:'todas', phrases:[], searchQuery:'', history:[], collapsed:{} };
@@ -179,6 +180,14 @@ const CATEGORY_META = {
   informacion:   { icon:'ℹ️', label:'Información' },
   concierge:     { icon:'🎩', label:'Concierge' },
   renta_reserva: { icon:'🚗', label:'Renta/Reserva' },
+  housekeeping:  { icon:'🧹', label:'Ama de Llaves' },
+  areas_publicas:{ icon:'🏊', label:'Áreas Públicas' },
+  banquetes:     { icon:'🍽️', label:'Banquetes' },
+  room_service:  { icon:'🛎️', label:'Room Service' },
+  botones:       { icon:'🧳', label:'Botones' },
+  recepcion:     { icon:'🛎️', label:'Recepción' },
+  animacion:     { icon:'🎉', label:'Animación' },
+  spa:           { icon:'💆', label:'Spa' },
   custom:        { icon:'⭐', label:'Personalizadas' }
 };
 function catMeta(c){
@@ -234,7 +243,8 @@ function loadAllData(){
     ['db15_informacion', safe('db15_informacion')],
     ['db16_extra', safe('db16_extra')],
     ['db17_extra', safe('db17_extra')],
-    ['db18_extra', safe('db18_extra')]
+    ['db18_extra', safe('db18_extra')],
+    ['db19_hotel', safe('db19_hotel')]
   ];
   const collected = [];
   const seen = new Set();
