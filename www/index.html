@@ -403,8 +403,7 @@ async function ttsSpeak(text, lang){
         text, 
         lang: lang === 'en' ? 'en-US' : 'es-ES', 
         rate: 0.95, 
-        category: 'playback',
-        queueStrategy: 0
+        category: 'playback'
       });
       return;
     }
@@ -463,14 +462,14 @@ function setupEvents(){
     isPlayingAll = false;
     if (continuousTimer) { clearTimeout(continuousTimer); continuousTimer = null; }
     if (window.speechSynthesis) window.speechSynthesis.cancel();
-    if (hasCap && Plugins.TextToSpeech) { try { Plugins.TextToSpeech.stop(); } catch(e){} }
+    
     if (el.playAllBtn) {
       el.playAllBtn.innerHTML = '🔊 Escuchar Todo';
       el.playAllBtn.style.background = '#059669';
     }
   }
 
-  async function playNextPhrase() {
+  function playNextPhrase() {
     if (!isPlayingAll || currentPlayIndex >= currentPlayList.length) {
       stopContinuous();
       return;
@@ -482,16 +481,36 @@ function setupEvents(){
     const itemEl = document.querySelector('.saved-item[data-id="' + p.id + '"]');
     if (itemEl) itemEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-    try {
-      await ttsSpeak(p.translation, 'en');
-    } catch (e) {
-      console.warn('Error en reproducción continua', e);
+    // Usamos SIEMPRE window.speechSynthesis para el modo continuo (evita bloqueos de Android)
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Limpiar cualquier audio atascado
+      const u = new SpeechSynthesisUtterance(p.translation);
+      u.lang = 'en-US';
+      u.rate = 0.95;
+      
+      u.onend = () => {
+        if (!isPlayingAll) return;
+        currentPlayIndex++;
+        // Espera 3 segundos exactos entre frase y frase
+        continuousTimer = setTimeout(playNextPhrase, 3000);
+      };
+      
+      u.onerror = () => {
+        // Si falla una frase, salta a la siguiente sin trabarse
+        if (!isPlayingAll) return;
+        currentPlayIndex++;
+        continuousTimer = setTimeout(playNextPhrase, 3000);
+      };
+      
+      window.speechSynthesis.speak(u);
+    } else {
+      // Fallback por si el WebView es muy viejo (muy raro)
+      ttsSpeak(p.translation, 'en').then(() => {
+        if (!isPlayingAll) return;
+        currentPlayIndex++;
+        continuousTimer = setTimeout(playNextPhrase, 3000);
+      });
     }
-
-    if (!isPlayingAll) return;
-
-    currentPlayIndex++;
-    continuousTimer = setTimeout(playNextPhrase, 3000);
   }
 
   el.playAllBtn.addEventListener('click', () => {
