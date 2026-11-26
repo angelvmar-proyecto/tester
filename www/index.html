@@ -111,11 +111,13 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 <button class="btn-gray" id="copyBtn">📋 Copiar</button>
 <button class="btn-gray" id="shareBtn">⬆️ Compartir</button>
 </div>
-<button class="btn btn-full" style="background:#059669;margin-bottom:8px;" id="playAllBtn">🔊 Escuchar Todo</button>
 <button class="btn btn-full" id="historyBtn">⏱️ Historial</button>
 <div class="search-box"><span class="search-icon">🔍</span><input type="text" class="search-input" id="searchInput" placeholder="Buscar frase ES/EN..."></div>
 <div class="categories-section" id="categoriesSection">
-<div class="categories-title">Categorías</div>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+  <div class="categories-title" style="margin:0;">Categorías</div>
+  <button id="playAllBtn" style="background:#059669;color:#fff;border:none;padding:8px 12px;border-radius:20px;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:4px;">🔊 Escuchar Todo</button>
+</div>
 <div class="categories-grid" id="categoriesGrid"></div>
 <div class="categories-title" style="margin-top:16px; color:#ea580c;">💼 Perfiles de Venta (Prueba)</div>
 <div class="categories-grid">
@@ -397,7 +399,13 @@ async function ttsSpeak(text, lang){
   if(!text) return;
   try {
     if(hasCap && Plugins.TextToSpeech){
-      await Plugins.TextToSpeech.speak({ text, lang: lang === 'en' ? 'en-US' : 'es-ES', rate: 0.95, category: 'playback' });
+      await Plugins.TextToSpeech.speak({ 
+        text, 
+        lang: lang === 'en' ? 'en-US' : 'es-ES', 
+        rate: 0.95, 
+        category: 'playback',
+        queueStrategy: 0
+      });
       return;
     }
   } catch(e){ console.warn('TTS nativo falló, uso web', e); }
@@ -448,19 +456,45 @@ function updateLangUI(){
 function setupEvents(){
   let continuousTimer = null;
   let isPlayingAll = false;
+  let currentPlayIndex = 0;
+  let currentPlayList = [];
 
   function stopContinuous() {
     isPlayingAll = false;
-    if (continuousTimer) clearTimeout(continuousTimer);
+    if (continuousTimer) { clearTimeout(continuousTimer); continuousTimer = null; }
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     if (hasCap && Plugins.TextToSpeech) { try { Plugins.TextToSpeech.stop(); } catch(e){} }
     if (el.playAllBtn) {
-      el.playAllBtn.textContent = '🔊 Escuchar Todo';
+      el.playAllBtn.innerHTML = '🔊 Escuchar Todo';
       el.playAllBtn.style.background = '#059669';
     }
   }
 
-  el.playAllBtn.addEventListener('click', async () => {
+  async function playNextPhrase() {
+    if (!isPlayingAll || currentPlayIndex >= currentPlayList.length) {
+      stopContinuous();
+      return;
+    }
+
+    const p = currentPlayList[currentPlayIndex];
+    
+    // Scroll suave a la frase actual
+    const itemEl = document.querySelector('.saved-item[data-id="' + p.id + '"]');
+    if (itemEl) itemEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    try {
+      await ttsSpeak(p.translation, 'en');
+    } catch (e) {
+      console.warn('Error en reproducción continua', e);
+    }
+
+    if (!isPlayingAll) return;
+
+    currentPlayIndex++;
+    continuousTimer = setTimeout(playNextPhrase, 3000);
+  }
+
+  el.playAllBtn.addEventListener('click', () => {
     if (isPlayingAll) {
       stopContinuous();
       return;
@@ -469,32 +503,15 @@ function setupEvents(){
     const visible = getVisiblePhrases();
     if (visible.length === 0) return alert('No hay frases para reproducir.');
 
+    currentPlayList = visible;
+    currentPlayIndex = 0;
     isPlayingAll = true;
-    el.playAllBtn.textContent = '⏹️ Detener';
+    
+    el.playAllBtn.innerHTML = '⏹️ Detener';
     el.playAllBtn.style.background = '#ef4444';
     haptic();
 
-    for (let i = 0; i < visible.length; i++) {
-      if (!isPlayingAll) break;
-      
-      const p = visible[i];
-      
-      // Scroll suave a la frase actual
-      const itemEl = document.querySelector('.saved-item[data-id="' + p.id + '"]');
-      if (itemEl) itemEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      // Leer la frase en Inglés
-      await ttsSpeak(p.translation, 'en');
-      
-      if (!isPlayingAll) break;
-      
-      // Esperar 3 segundos
-      await new Promise(resolve => {
-        continuousTimer = setTimeout(resolve, 3000);
-      });
-    }
-
-    if (isPlayingAll) stopContinuous(); // Al terminar naturalmente
+    playNextPhrase();
   });
 
   el.categoriesGrid.addEventListener('click', e => {
