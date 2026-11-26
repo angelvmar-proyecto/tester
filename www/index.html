@@ -160,8 +160,6 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
 <script src="db19-hotel.js"></script>
 
 <script>
-const state = { inputLang:'es', outputLang:'en', currentCategory:'todas', activeProfile:null, phrases:[], searchQuery:'', history:[], collapsed:{} };
-
 const PROFILES = {
   deli: { name: '🛒 Deli / Tienda', cats: ['bienvenida', 'producto', 'precios', 'objeciones', 'cierre'] },
   housekeeping: { name: '🧹 Ama de Llaves', cats: ['housekeeping', 'areas_publicas', 'recepcion', 'informacion'] },
@@ -209,6 +207,7 @@ function catMeta(c){
   return { icon:'📁', label: String(c||'otras').replace(/_/g,' ').replace(/\b\w/g, l=>l.toUpperCase()) };
 }
 
+const state = { inputLang:'es', outputLang:'en', currentCategory:'todas', activeProfile:null, phrases:[], searchQuery:'', history:[], collapsed:{} };
 const el = {
   audioStatus:document.getElementById('audioStatus'),
   inputText:document.getElementById('inputText'),
@@ -224,7 +223,6 @@ const el = {
   searchInput:document.getElementById('searchInput'),
   categoriesGrid:document.getElementById('categoriesGrid'),
   profilesGrid:document.getElementById('profilesGrid'),
-  profileDeli:document.getElementById('profileDeli'),
   savedList:document.getElementById('savedList'),
   addPhraseBtn:document.getElementById('addPhraseBtn'),
   swapLangs:document.getElementById('swapLangs'),
@@ -233,11 +231,7 @@ const el = {
   historyClose:document.getElementById('historyClose'),
   historyClear:document.getElementById('historyClear'),
   selIn:document.getElementById('selIn'),
-  selOut:document.getElementById('selOut'),
-  flagIn:document.getElementById('flagIn'),
-  flagOut:document.getElementById('flagOut'),
-  langInLabel:document.getElementById('langInLabel'),
-  langOutLabel:document.getElementById('langOutLabel')
+  selOut:document.getElementById('selOut')
 };
 
 const hasCap = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
@@ -246,20 +240,14 @@ function safe(name){ try { return typeof eval(name) !== 'undefined' ? eval(name)
 
 function loadAllData(){
   const sources = [
-    ['db1', safe('db1')], ['db2', safe('db2')], ['db3', safe('db3')],
-    ['db4', safe('db4')], ['db5', safe('db5')], ['db6', safe('db6')],
-    ['db7', safe('db7')], ['db8', safe('db8')], ['db9', safe('db9')],
-    ['db10', safe('db10')], ['db11', safe('db11')],
-    ['db9_tirolesa', safe('db9_tirolesa')],
-    ['db10_buceo', safe('db10_buceo')],
-    ['db11_cuatrimotos', safe('db11_cuatrimotos')],
-    ['db12_yates', safe('db12_yates')],
-    ['db13_tequila', safe('db13_tequila')],
-    ['db14_paquetes', safe('db14_paquetes')],
-    ['db15_informacion', safe('db15_informacion')],
-    ['db16_extra', safe('db16_extra')],
-    ['db17_extra', safe('db17_extra')],
-    ['db18_extra', safe('db18_extra')],
+    ['db1', safe('db1')], ['db2', safe('db2')], ['db3', safe('db3')], ['db4', safe('db4')],
+    ['db5', safe('db5')], ['db6', safe('db6')], ['db7', safe('db7')], ['db8', safe('db8')],
+    ['db9', safe('db9')], ['db10', safe('db10')], ['db11', safe('db11')],
+    ['db9_tirolesa', safe('db9_tirolesa')], ['db10_buceo', safe('db10_buceo')],
+    ['db11_cuatrimotos', safe('db11_cuatrimotos')], ['db12_yates', safe('db12_yates')],
+    ['db13_tequila', safe('db13_tequila')], ['db14_paquetes', safe('db14_paquetes')],
+    ['db15_informacion', safe('db15_informacion')], ['db16_extra', safe('db16_extra')],
+    ['db17_extra', safe('db17_extra')], ['db18_extra', safe('db18_extra')],
     ['db19_hotel', safe('db19_hotel')]
   ];
   const collected = [];
@@ -297,7 +285,7 @@ function renderCategories(){
   const cats = Object.keys(counts).sort((a,b) => counts[b] - counts[a]);
   const total = state.phrases.length;
   const html = ['todas', ...cats].map(c => {
-    const active = c === state.currentCategory ? ' active' : '';
+    const active = (c === state.currentCategory && !state.activeProfile) ? ' active' : '';
     const meta = c === 'todas' ? { icon:'📚', label:'Todas' } : catMeta(c);
     const count = c === 'todas' ? total : counts[c];
     return '<span class="category-tag' + active + '" data-category="' + c + '">'
@@ -325,37 +313,16 @@ function phraseItemHTML(p){
     + '</div></div>';
 }
 
-function groupHTML(cat, items){
-  const meta = catMeta(cat);
-  const collapsed = !!state.collapsed[cat];
-  const arrow = collapsed ? '▸' : '▾';
-  let html = '<div class="phrase-group" data-group="' + cat + '">';
-  html += '<div class="group-header" data-toggle="' + cat + '">'
-        + '<span class="group-icon">' + meta.icon + '</span>'
-        + '<span class="group-name">' + arrow + ' ' + meta.label + '</span>'
-        + '<span class="group-count">' + items.length + '</span></div>';
-  if(!collapsed){
-    html += items.map(phraseItemHTML).join('');
-  }
-  html += '</div>';
-  return html;
-}
-
 function getVisiblePhrases(){
-  const q = state.searchQuery.trim().toLowerCase();
   let visible = state.phrases;
-  
   if (state.activeProfile && PROFILES[state.activeProfile]) {
-    const profileCats = PROFILES[state.activeProfile].cats;
-    visible = visible.filter(p => profileCats.includes(p.category));
+    visible = visible.filter(p => PROFILES[state.activeProfile].cats.includes(p.category));
   } else if (state.currentCategory !== 'todas'){
     visible = visible.filter(p => p.category === state.currentCategory);
   }
-  
+  const q = state.searchQuery.trim().toLowerCase();
   if(q){
-    visible = visible.filter(p =>
-      p.text.toLowerCase().includes(q) || p.translation.toLowerCase().includes(q)
-    );
+    visible = visible.filter(p => p.text.toLowerCase().includes(q) || p.translation.toLowerCase().includes(q));
   }
   return visible;
 }
@@ -363,54 +330,41 @@ function getVisiblePhrases(){
 function renderPhrases(){
   let visible = getVisiblePhrases();
   if(visible.length === 0){
-    el.savedList.innerHTML = '<p class="empty-state">No hay frases que coincidan</p>';
+    el.savedList.innerHTML = '<p class="empty-state">No hay frases en esta selección</p>';
     return;
   }
   let html = '';
   if (state.activeProfile && PROFILES[state.activeProfile]) {
-    const meta = PROFILES[state.activeProfile];
-    html += '<div class="group-header" style="cursor:default;"><span class="group-icon">💼</span><span class="group-name">' + meta.name + '</span><span class="group-count">' + visible.length + '</span></div>';
+    html += '<div class="group-header" style="cursor:default;"><span class="group-icon">💼</span><span class="group-name">' + PROFILES[state.activeProfile].name + '</span><span class="group-count">' + visible.length + '</span></div>';
   } else if(state.currentCategory !== 'todas'){
     const meta = catMeta(state.currentCategory);
     html += '<div class="group-header" style="cursor:default;"><span class="group-icon">' + meta.icon + '</span><span class="group-name">' + meta.label + '</span><span class="group-count">' + visible.length + '</span></div>';
-  } else if(q){
+  } else if(state.searchQuery){
     html += '<div class="group-header" style="cursor:default;"><span class="group-icon">🔍</span><span class="group-name">Resultados</span><span class="group-count">' + visible.length + '</span></div>';
   }
-  html += visible.map(phraseItemHTML).join('');
+  
+  if (!state.activeProfile && state.currentCategory === 'todas' && !state.searchQuery) {
+    const groups = {};
+    visible.forEach(p => { (groups[p.category] = groups[p.category] || []).push(p); });
+    const order = Object.keys(groups).sort((a,b) => groups[b].length - groups[a].length);
+    html += order.map(cat => {
+      const meta = catMeta(cat);
+      return '<div class="phrase-group"><div class="group-header"><span class="group-icon">' + meta.icon + '</span><span class="group-name">' + meta.label + '</span><span class="group-count">' + groups[cat].length + '</span></div>' + groups[cat].map(phraseItemHTML).join('') + '</div>';
+    }).join('');
+  } else {
+    html += visible.map(phraseItemHTML).join('');
+  }
   el.savedList.innerHTML = html;
-}
-
-function loadHistory(){
-  try { state.history = JSON.parse(localStorage.getItem('tvp_history') || '[]'); } catch(e){ state.history = []; }
-}
-function saveHistory(){
-  try { localStorage.setItem('tvp_history', JSON.stringify(state.history.slice(0, 50))); } catch(e){}
-}
-function pushHistory(input, output){
-  if(!input || !output) return;
-  state.history.unshift({ input, output, ts: Date.now() });
-  state.history = state.history.slice(0, 50);
-  saveHistory();
-}
-function renderHistory(){
-  el.historyList.innerHTML = state.history.length
-    ? state.history.map(h => '<div class="history-item"><strong>' + escapeHtml(h.input) + '</strong><br>↳ ' + escapeHtml(h.output) + '<small>' + new Date(h.ts).toLocaleString() + '</small></div>').join('')
-    : '<p class="empty-state">Sin historial</p>';
 }
 
 async function ttsSpeak(text, lang){
   if(!text) return;
   try {
     if(hasCap && Plugins.TextToSpeech){
-      await Plugins.TextToSpeech.speak({ 
-        text, 
-        lang: lang === 'en' ? 'en-US' : 'es-ES', 
-        rate: 0.95, 
-        category: 'playback'
-      });
+      await Plugins.TextToSpeech.speak({ text, lang: lang === 'en' ? 'en-US' : 'es-ES', rate: 0.95, category: 'playback' });
       return;
     }
-  } catch(e){ console.warn('TTS nativo falló, uso web', e); }
+  } catch(e){}
   if('speechSynthesis' in window){
     return new Promise((resolve) => {
       const u = new SpeechSynthesisUtterance(text);
@@ -420,6 +374,7 @@ async function ttsSpeak(text, lang){
     });
   }
 }
+
 async function clipCopy(text){
   try { if(hasCap && Plugins.Clipboard){ await Plugins.Clipboard.write({ string: text }); return true; } } catch(e){}
   try { await navigator.clipboard.writeText(text); return true; } catch(e){ return false; }
@@ -434,19 +389,12 @@ function translateText(text){
   const isEsToEn = state.inputLang === 'es';
   const from = p => isEsToEn ? p.text : p.translation;
   const to   = p => isEsToEn ? p.translation : p.text;
-
   let match = state.phrases.find(p => from(p).toLowerCase().trim() === q);
   if(match) return to(match);
-
-  match = state.phrases.find(p => {
-    const ft = from(p).toLowerCase();
-    return ft.includes(q) || q.includes(ft);
-  });
+  match = state.phrases.find(p => { const ft = from(p).toLowerCase(); return ft.includes(q) || q.includes(ft); });
   if(match) return to(match);
-
   const reverse = state.phrases.find(p => p.translation.toLowerCase().trim() === q || p.text.toLowerCase().trim() === q);
   if(reverse) return isEsToEn ? (reverse.translation.toLowerCase().trim() === q ? reverse.text : reverse.translation) : reverse.text;
-
   return null;
 }
 
@@ -455,86 +403,72 @@ function updateLangUI(){
   if(el.selOut) el.selOut.value = state.outputLang;
 }
 
+let continuousTimer = null;
+let isPlayingAll = false;
+let currentPlayIndex = 0;
+let currentPlayList = [];
+
+function stopContinuous() {
+  isPlayingAll = false;
+  if (continuousTimer) { clearTimeout(continuousTimer); continuousTimer = null; }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (hasCap && Plugins.TextToSpeech) { try { Plugins.TextToSpeech.stop(); } catch(e){} }
+  if (el.playAllBtn) {
+    el.playAllBtn.innerHTML = '🔊 Escuchar Todo';
+    el.playAllBtn.style.background = '#059669';
+  }
+}
+
+function playNextPhrase() {
+  if (!isPlayingAll || currentPlayIndex >= currentPlayList.length) {
+    stopContinuous();
+    return;
+  }
+  const p = currentPlayList[currentPlayIndex];
+  const itemEl = document.querySelector('.saved-item[data-id="' + p.id + '"]');
+  if (itemEl) itemEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(p.translation);
+    u.lang = 'en-US';
+    u.rate = 0.95;
+    u.onend = () => { if (!isPlayingAll) return; currentPlayIndex++; continuousTimer = setTimeout(playNextPhrase, 3000); };
+    u.onerror = () => { if (!isPlayingAll) return; currentPlayIndex++; continuousTimer = setTimeout(playNextPhrase, 3000); };
+    window.speechSynthesis.speak(u);
+  } else {
+    ttsSpeak(p.translation, 'en').then(() => {
+      if (!isPlayingAll) return; currentPlayIndex++; continuousTimer = setTimeout(playNextPhrase, 3000);
+    });
+  }
+}
+
 function setupEvents(){
-  let continuousTimer = null;
-  let isPlayingAll = false;
-  let currentPlayIndex = 0;
-  let currentPlayList = [];
+  if (el.profilesGrid) {
+    const profKeys = Object.keys(PROFILES);
+    el.profilesGrid.innerHTML = profKeys.map(k => {
+      const p = PROFILES[k];
+      return '<span class="category-tag" data-profile="' + k + '" style="background:#fff7ed;border:1px solid #ea580c;color:#ea580c;font-weight:600;">' + p.name + '</span>';
+    }).join('');
 
-  function stopContinuous() {
-    isPlayingAll = false;
-    if (continuousTimer) { clearTimeout(continuousTimer); continuousTimer = null; }
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-    
-    if (el.playAllBtn) {
-      el.playAllBtn.innerHTML = '🔊 Escuchar Todo';
-      el.playAllBtn.style.background = '#059669';
-    }
-  }
-
-  function playNextPhrase() {
-    if (!isPlayingAll || currentPlayIndex >= currentPlayList.length) {
-      stopContinuous();
-      return;
-    }
-
-    const p = currentPlayList[currentPlayIndex];
-    const itemEl = document.querySelector('.saved-item[data-id="' + p.id + '"]');
-    if (itemEl) itemEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(p.translation);
-      u.lang = 'en-US';
-      u.rate = 0.95;
-      
-      u.onend = () => {
-        if (!isPlayingAll) return;
-        currentPlayIndex++;
-        continuousTimer = setTimeout(playNextPhrase, 3000);
-      };
-      
-      u.onerror = () => {
-        if (!isPlayingAll) return;
-        currentPlayIndex++;
-        continuousTimer = setTimeout(playNextPhrase, 3000);
-      };
-      
-      window.speechSynthesis.speak(u);
-    } else {
-      ttsSpeak(p.translation, 'en').then(() => {
-        if (!isPlayingAll) return;
-        currentPlayIndex++;
-        continuousTimer = setTimeout(playNextPhrase, 3000);
-      });
-    }
-  }
-
-  el.playAllBtn.addEventListener('click', () => {
-    try {
-      if (isPlayingAll) {
-        stopContinuous();
-        return;
+    el.profilesGrid.addEventListener('click', e => {
+      const tag = e.target.closest('.category-tag');
+      if(!tag) return;
+      if (state.activeProfile === tag.dataset.profile) {
+        state.activeProfile = null;
+      } else {
+        state.activeProfile = tag.dataset.profile;
+        state.currentCategory = 'todas';
+        state.searchQuery = '';
+        el.searchInput.value = '';
       }
-      
-      const visible = getVisiblePhrases();
-      if (visible.length === 0) return alert('No hay frases para reproducir.');
-
-      currentPlayList = visible;
-      currentPlayIndex = 0;
-      isPlayingAll = true;
-      
-      el.playAllBtn.innerHTML = '⏹️ Detener';
-      el.playAllBtn.style.background = '#ef4444';
+      el.categoriesGrid.querySelectorAll('.category-tag').forEach(t => t.classList.remove('active'));
+      el.profilesGrid.querySelectorAll('.category-tag').forEach(t => t.classList.toggle('active', t.dataset.profile === state.activeProfile));
+      renderCategories();
+      renderPhrases();
       haptic();
-
-      playNextPhrase();
-    } catch (err) {
-      alert('Error en Escuchar Todo: ' + err.message);
-      console.error(err);
-      stopContinuous();
-    }
-  });
+    });
+  }
 
   el.categoriesGrid.addEventListener('click', e => {
     const tag = e.target.closest('.category-tag');
@@ -544,24 +478,6 @@ function setupEvents(){
     if (el.profilesGrid) el.profilesGrid.querySelectorAll('.category-tag').forEach(t => t.classList.remove('active'));
     renderCategories();
     renderPhrases();
-    haptic();
-  });
-
-  el.profileDeli.addEventListener('click', () => {
-    const mixCategories = ['cierre', 'objeciones', 'bienvenida', 'producto', 'precios'];
-    state.currentCategory = 'todas';
-    state.searchQuery = ''; // Limpiar búsqueda
-    el.searchInput.value = '';
-    
-    // Filtrar frases que pertenezcan a estas categorías y tomar hasta 10 de cada una
-    let mixedPhrases = [];
-    mixCategories.forEach(cat => {
-      const catPhrases = state.phrases.filter(p => p.category === cat).slice(0, 10);
-      mixedPhrases = mixedPhrases.concat(catPhrases);
-    });
-    
-    // Renderizar directamente
-    el.savedList.innerHTML = '<div class="group-header" style="cursor:default;"><span class="group-icon">🛒</span><span class="group-name">Vendedor de Deli (Mix)</span><span class="group-count">' + mixedPhrases.length + '</span></div>' + mixedPhrases.map(phraseItemHTML).join('');
     haptic();
   });
 
@@ -575,7 +491,7 @@ function setupEvents(){
     if(!t) return;
     const tr = prompt('Traducción al inglés:');
     if(!tr) return;
-    const c = (prompt('Categoría (ej: buceo, yates, custom...):') || 'custom').toLowerCase().trim();
+    const c = (prompt('Categoría (ej: buceo, custom...):') || 'custom').toLowerCase().trim();
     state.phrases.unshift({ id: Date.now(), text: t, translation: tr, category: c, src: 'user' });
     renderCategories();
     renderPhrases();
@@ -586,42 +502,24 @@ function setupEvents(){
     const t = el.inputText.value.trim();
     if(!t){ el.outputText.value = 'Escribe algo primero...'; return; }
     haptic();
-    
     el.outputText.value = '🔄 Buscando en base de datos...';
-    
-    // 1. Intentar buscar en la base de datos local (solo ES <-> EN)
     if ((state.inputLang === 'es' || state.inputLang === 'en') && (state.outputLang === 'es' || state.outputLang === 'en')) {
       const found = translateText(t);
       if(found){
         el.outputText.value = found;
-        pushHistory(t, found);
         return;
       }
     }
-    
-    // 2. Si no está en la DB o es otro idioma, usar la API de Google Translate
     el.outputText.value = '🌐 Traduciendo con Google...';
     try {
       const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${state.inputLang}&tl=${state.outputLang}&dt=t&q=${encodeURIComponent(t)}`;
       const response = await fetch(url);
       const data = await response.json();
-      
       let translatedText = '';
-      if (data && data[0]) {
-        data[0].forEach(item => {
-          if (item[0]) translatedText += item[0];
-        });
-      }
-      
-      if (translatedText) {
-        el.outputText.value = translatedText;
-        pushHistory(t, translatedText);
-      } else {
-        el.outputText.value = '⚠️ No se pudo traducir.';
-      }
+      if (data && data[0]) { data[0].forEach(item => { if (item[0]) translatedText += item[0]; }); }
+      el.outputText.value = translatedText || '⚠️ No se pudo traducir.';
     } catch (e) {
-      console.error(e);
-      el.outputText.value = '❌ Error de red. Revisa tu conexión a internet.';
+      el.outputText.value = '❌ Error de red. Revisa tu conexión.';
     }
   });
 
@@ -645,14 +543,6 @@ function setupEvents(){
     else alert('Compartir no disponible');
   });
 
-  el.selIn.addEventListener('change', e => {
-    state.inputLang = e.target.value;
-    haptic();
-  });
-  el.selOut.addEventListener('change', e => {
-    state.outputLang = e.target.value;
-    haptic();
-  });
   el.swapLangs.addEventListener('click', () => {
     [el.inputText.value, el.outputText.value] = [el.outputText.value, el.inputText.value];
     [state.inputLang, state.outputLang] = [state.outputLang, state.inputLang];
@@ -660,13 +550,8 @@ function setupEvents(){
     haptic();
   });
 
-  el.autoLangBtn.addEventListener('click', () => {
-    const on = el.autoLangBtn.dataset.on === '1';
-    el.autoLangBtn.dataset.on = on ? '0' : '1';
-    el.autoLangBtn.style.background = on ? '#7c3aed' : '#10b981';
-    alert(on ? '🔍 Auto-idioma: OFF' : '🔍 Auto-idioma: ON (requiere API externa)');
-    haptic();
-  });
+  if (el.selIn) el.selIn.addEventListener('change', e => { state.inputLang = e.target.value; haptic(); });
+  if (el.selOut) el.selOut.addEventListener('change', e => { state.outputLang = e.target.value; haptic(); });
 
   el.speakBtn.addEventListener('click', () => {
     const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -678,22 +563,11 @@ function setupEvents(){
     el.inputText.placeholder = '🎤 Escuchando...';
     R.onresult = e => { el.inputText.value = e.results[0][0].transcript; };
     R.onerror = () => {};
-    R.onend = () => {
-      el.speakBtn.style.opacity = '1';
-      el.inputText.placeholder = 'Escribe o toca el micrófono...';
-    };
+    R.onend = () => { el.speakBtn.style.opacity = '1'; el.inputText.placeholder = 'Escribe o toca el micrófono...'; };
     try { R.start(); } catch(e){ alert('No se pudo iniciar micrófono'); }
   });
 
-  // Click en item / en header de grupo (colapsar)
   el.savedList.addEventListener('click', e => {
-    const header = e.target.closest('.group-header[data-toggle]');
-    if(header){
-      const cat = header.dataset.toggle;
-      state.collapsed[cat] = !state.collapsed[cat];
-      renderPhrases();
-      return;
-    }
     const btn = e.target.closest('.saved-btn');
     const item = e.target.closest('.saved-item');
     if(!item) return;
@@ -701,17 +575,15 @@ function setupEvents(){
     const p = state.phrases.find(x => x.id === id);
     if(!p) return;
     const act = btn ? btn.dataset.act : 'use';
-    if(act === 'say-es'){
-      ttsSpeak(p.text, 'es');
-      haptic();
-    } else if(act === 'say-en'){
-      ttsSpeak(p.translation, 'en');
-      haptic();
-    } else if(act === 'use'){
+    if(act === 'use'){
       el.inputText.value = p.text;
       el.outputText.value = p.translation;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       haptic();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if(act === 'say-es'){
+      ttsSpeak(p.text, 'es'); haptic();
+    } else if(act === 'say-en'){
+      ttsSpeak(p.translation, 'en'); haptic();
     } else if(act === 'del'){
       if(confirm('¿Eliminar "' + p.text + '"? (solo en esta sesión)')){
         state.phrases = state.phrases.filter(x => x.id !== id);
@@ -721,10 +593,35 @@ function setupEvents(){
     }
   });
 
-  el.historyBtn.addEventListener('click', () => { renderHistory(); el.historyModal.classList.remove('hidden'); });
+  if (el.playAllBtn) {
+    el.playAllBtn.addEventListener('click', () => {
+      try {
+        if (isPlayingAll) { stopContinuous(); return; }
+        const visible = getVisiblePhrases();
+        if (visible.length === 0) return alert('No hay frases para reproducir.');
+        currentPlayList = visible;
+        currentPlayIndex = 0;
+        isPlayingAll = true;
+        el.playAllBtn.innerHTML = '⏹️ Detener';
+        el.playAllBtn.style.background = '#ef4444';
+        haptic();
+        playNextPhrase();
+      } catch (err) {
+        alert('Error en Escuchar Todo: ' + err.message);
+        stopContinuous();
+      }
+    });
+  }
+
+  el.historyBtn.addEventListener('click', () => { 
+    el.historyList.innerHTML = state.history.length
+      ? state.history.map(h => '<div class="history-item"><strong>' + escapeHtml(h.input) + '</strong><br>↳ ' + escapeHtml(h.output) + '<small>' + new Date(h.ts).toLocaleString() + '</small></div>').join('')
+      : '<p class="empty-state">Sin historial</p>';
+    el.historyModal.classList.remove('hidden'); 
+  });
   el.historyClose.addEventListener('click', () => el.historyModal.classList.add('hidden'));
   el.historyClear.addEventListener('click', () => {
-    if(confirm('¿Borrar todo el historial?')){ state.history = []; saveHistory(); renderHistory(); }
+    if(confirm('¿Borrar todo el historial?')){ state.history = []; try{localStorage.setItem('tvp_history','[]')}catch(e){}; el.historyList.innerHTML = '<p class="empty-state">Sin historial</p>'; }
   });
   el.historyModal.addEventListener('click', e => { if(e.target === el.historyModal) el.historyModal.classList.add('hidden'); });
 }
@@ -732,7 +629,7 @@ function setupEvents(){
 document.addEventListener('DOMContentLoaded', () => {
   el.audioStatus.textContent = hasCap ? '✅ Capacitor nativo' : '✅ Modo web';
   loadAllData();
-  loadHistory();
+  try { state.history = JSON.parse(localStorage.getItem('tvp_history') || '[]'); } catch(e){ state.history = []; }
   renderCategories();
   renderPhrases();
   updateLangUI();
