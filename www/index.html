@@ -180,15 +180,35 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
       🎙️
     </button>
     
+    <div style="display:flex; gap:10px; margin-bottom:16px; justify-content:center;">
+      <select id="liveSrcLang" class="lang-box" style="flex:1; padding:8px; font-size:14px;">
+        <option value="en-US">🇺🇸 El turista habla: Inglés</option>
+        <option value="es-MX">🇪🇸 El turista habla: Español</option>
+        <option value="fr-FR">🇫🇷 El turista habla: Francés</option>
+        <option value="de-DE">🇩🇪 El turista habla: Alemán</option>
+        <option value="pt-BR">🇧🇷 El turista habla: Portugués</option>
+        <option value="it-IT">🇮🇹 El turista habla: Italiano</option>
+        <option value="ru-RU">🇷🇺 El turista habla: Ruso</option>
+      </select>
+      <select id="liveTgtLang" class="lang-box" style="flex:1; padding:8px; font-size:14px;">
+        <option value="es-MX">🇪🇸 Traducir a: Español</option>
+        <option value="en-US">🇺🇸 Traducir a: Inglés</option>
+        <option value="fr-FR">🇫🇷 Traducir a: Francés</option>
+        <option value="de-DE">🇩🇪 Traducir a: Alemán</option>
+        <option value="pt-BR">🇧🇷 Traducir a: Portugués</option>
+        <option value="it-IT">🇮🇹 Traducir a: Italiano</option>
+        <option value="ru-RU">🇷🇺 Traducir a: Ruso</option>
+      </select>
+    </div>
     <div id="liveStatus" style="font-weight:600; color:#ef4444; margin-bottom:20px; font-size:14px;">Inactivo</div>
 
     <div class="textarea-box" style="text-align:left; background:#f8fafc;">
-      <small style="color:#94a3b8; font-weight:600; font-size:11px; text-transform:uppercase;">Tú dices (ES):</small>
+      <small style="color:#94a3b8; font-weight:600; font-size:11px; text-transform:uppercase;"><span id="liveSrcLabel">Se escucha:</span></small>
       <div id="liveSourceText" style="font-size:16px; color:#334155; margin-top:4px; min-height:24px;">...</div>
     </div>
 
     <div class="textarea-box" style="text-align:left; background:#f0fdf4; border-color:#bbf7d0;">
-      <small style="color:#059669; font-weight:600; font-size:11px; text-transform:uppercase;">Se traduce (EN):</small>
+      <small style="color:#059669; font-weight:600; font-size:11px; text-transform:uppercase;"><span id="liveTgtLabel">Se traduce:</span></small>
       <div id="liveTargetText" style="font-size:18px; color:#065f46; font-weight:600; margin-top:4px; min-height:24px;">...</div>
     </div>
   </div>
@@ -754,13 +774,22 @@ function setupEvents(){
   el.liveTargetText = document.getElementById('liveTargetText');
 
   async function translateForLive(text) {
-    // Intentar buscar en base de datos local primero
-    const exactMatch = state.phrases.find(p => p.text.toLowerCase().trim() === text.toLowerCase().trim());
-    if (exactMatch) return exactMatch.translation;
+    const srcLang = document.getElementById('liveSrcLang').value.split('-')[0]; // ej: 'en' de 'en-US'
+    const tgtLang = document.getElementById('liveTgtLang').value.split('-')[0]; // ej: 'es' de 'es-MX'
 
-    // Si no está en la DB, usar Google Translate
+    // Intentar buscar en base de datos local primero (solo si es ES->EN o EN->ES)
+    if ((srcLang === 'es' && tgtLang === 'en') || (srcLang === 'en' && tgtLang === 'es')) {
+      const isEsToEn = srcLang === 'es';
+      const exactMatch = state.phrases.find(p => {
+        const textToCompare = isEsToEn ? p.text : p.translation;
+        return textToCompare.toLowerCase().trim() === text.toLowerCase().trim();
+      });
+      if (exactMatch) return isEsToEn ? exactMatch.translation : exactMatch.text;
+    }
+
+    // Si no está en la DB o es otro idioma, usar Google Translate
     try {
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=es&tl=en&dt=t&q=${encodeURIComponent(text)}`;
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${srcLang}&tl=${tgtLang}&dt=t&q=${encodeURIComponent(text)}`;
       const response = await fetch(url);
       const data = await response.json();
       if (data && data[0] && data[0][0] && data[0][0][0]) return data[0][0][0];
@@ -795,7 +824,7 @@ function setupEvents(){
       el.liveTargetText.textContent = '...';
       
       liveRecognition = new Rec();
-      liveRecognition.lang = 'es-MX'; // Escuchar en Español
+      liveRecognition.lang = document.getElementById('liveSrcLang').value;
       liveRecognition.interimResults = false;
       liveRecognition.continuous = true; // Mantener escuchando
 
@@ -814,7 +843,7 @@ function setupEvents(){
         el.liveStatus.textContent = '🔊 Hablando...';
         if ('speechSynthesis' in window) {
           const u = new SpeechSynthesisUtterance(translation);
-          u.lang = 'en-US';
+          u.lang = document.getElementById('liveTgtLang').value;
           u.rate = 0.95;
           u.onend = () => {
             if (isLiveActive) {
