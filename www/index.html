@@ -181,14 +181,18 @@ textarea{width:100%;border:none;background:transparent;font-size:16px;resize:non
         <option value="es-MX">🇪🇸 Yo hablo: Español</option>
         <option value="en-US">🇺🇸 Yo hablo: Inglés</option>
       </select>
-      <select id="liveTouristLang" class="lang-box" style="flex:1; padding:10px; font-size:14px;">
-        <option value="en-US">🇺🇸 Turista: Inglés</option>
-        <option value="fr-FR">🇫🇷 Turista: Francés</option>
-        <option value="de-DE">🇩🇪 Turista: Alemán</option>
-        <option value="pt-BR">🇧🇷 Turista: Portugués</option>
-        <option value="ru-RU">🇷🇺 Turista: Ruso</option>
-        <option value="it-IT">🇮🇹 Turista: Italiano</option>
-      </select>
+      <div style="display:flex; gap:4px; flex:1;">
+        <select id="liveTouristLang" class="lang-box" style="flex:1; padding:10px; font-size:14px;">
+          <option value="en-US">🇺🇸 Turista: Inglés</option>
+          <option value="fr-FR">🇫🇷 Turista: Francés</option>
+          <option value="de-DE">🇩🇪 Turista: Alemán</option>
+          <option value="pt-BR">🇧🇷 Turista: Portugués</option>
+          <option value="ru-RU">🇷🇺 Turista: Ruso</option>
+          <option value="it-IT">🇮🇹 Turista: Italiano</option>
+          <option value="el-GR">🇬🇷 Turista: Griego</option>
+        </select>
+        <button id="btnTestVoice" style="background:#f1f5f9; border:1px solid #e2e8f0; border-radius:12px; padding:0 12px; font-size:16px; cursor:pointer;" title="Probar voz">🔊</button>
+      </div>
     </div>
 
     <div style="display:flex; gap:10px; margin-bottom:20px;">
@@ -780,6 +784,7 @@ function setupEvents(){
     if(code.startsWith('pt')) return 'Portugués';
     if(code.startsWith('it')) return 'Italiano';
     if(code.startsWith('ru')) return 'Ruso';
+    if(code.startsWith('el')) return 'Griego';
     return code;
   };
 
@@ -816,8 +821,9 @@ function setupEvents(){
     return "(Error de traducción)";
   }
 
-  function startListening(mode) {
-    if (currentMode === mode) {
+  function startListening(mode, isAutoResume = false) {
+    if (currentMode === mode && !isAutoResume) {
+      // Si ya está en ese modo, lo apagamos
       currentMode = null;
       isLiveActive = false;
       if (liveRecognition) { try { liveRecognition.abort(); } catch(e){} }
@@ -845,10 +851,13 @@ function setupEvents(){
     document.getElementById('btnListenMe').style.opacity = mode === 'me' ? '0.5' : '1';
 
     const statusEl = document.getElementById('liveStatus');
-    statusEl.textContent = '🎤 Escuchando...';
+    statusEl.textContent = '🎤 Escuchando (' + getLangName(srcLang) + ')...';
     statusEl.style.color = '#059669';
-    document.getElementById('liveSourceText').textContent = '...';
-    document.getElementById('liveTargetText').textContent = '...';
+    
+    if (!isAutoResume) {
+      document.getElementById('liveSourceText').textContent = '...';
+      document.getElementById('liveTargetText').textContent = '...';
+    }
 
     liveRecognition = new Rec();
     liveRecognition.lang = srcLang;
@@ -870,28 +879,55 @@ function setupEvents(){
         u.lang = tgtLang;
         u.rate = 0.95;
         u.onend = () => {
-          currentMode = null;
-          isLiveActive = false;
-          statusEl.textContent = 'Listo para el siguiente turno';
-          statusEl.style.color = '#059669';
-          document.getElementById('btnListenTourist').style.opacity = '1';
-          document.getElementById('btnListenMe').style.opacity = '1';
+          // MODO MANOS LIBRES: Si estábamos escuchando al turista, volvemos a escuchar automáticamente
+          if (currentMode === 'tourist') {
+            startListening('tourist', true);
+          } else {
+            // Si era el vendedor, nos detenemos y esperamos respuesta
+            currentMode = null;
+            isLiveActive = false;
+            statusEl.textContent = 'Listo. Toca un botón para hablar.';
+            statusEl.style.color = '#059669';
+            document.getElementById('btnListenTourist').style.opacity = '1';
+            document.getElementById('btnListenMe').style.opacity = '1';
+          }
         };
         window.speechSynthesis.speak(u);
       }
     };
 
     liveRecognition.onerror = (e) => {
-      currentMode = null;
-      isLiveActive = false;
-      statusEl.textContent = 'Error de micrófono o silencio';
-      statusEl.style.color = '#ef4444';
-      document.getElementById('btnListenTourist').style.opacity = '1';
-      document.getElementById('btnListenMe').style.opacity = '1';
+      if (currentMode === 'tourist' && e.error !== 'no-speech') {
+         // Si hay error de red o algo, reintentamos en 2 segundos
+         setTimeout(() => startListening('tourist', true), 2000);
+      } else if (e.error === 'no-speech' && currentMode === 'tourist') {
+         // Si el turista no dijo nada, seguimos escuchando
+         startListening('tourist', true);
+      } else {
+        currentMode = null;
+        isLiveActive = false;
+        statusEl.textContent = 'Inactivo';
+        statusEl.style.color = '#ef4444';
+        document.getElementById('btnListenTourist').style.opacity = '1';
+        document.getElementById('btnListenMe').style.opacity = '1';
+      }
     };
 
     liveRecognition.start();
   }
+
+  // Botón para probar cómo suena la voz del idioma
+  document.getElementById('btnTestVoice').addEventListener('click', () => {
+    const lang = document.getElementById('liveTouristLang').value;
+    const langName = getLangName(lang);
+    const testText = 'Hello, welcome to Cancun. This is a test.';
+    // Usamos una frase corta en inglés que la voz lo leerá con acento del idioma elegido si el motor lo soporta
+    if ('speechSynthesis' in window) {
+      const u = new SpeechSynthesisUtterance(testText);
+      u.lang = lang;
+      window.speechSynthesis.speak(u);
+    }
+  });
 
   document.getElementById('btnListenTourist').addEventListener('click', () => startListening('tourist'));
   document.getElementById('btnListenMe').addEventListener('click', () => startListening('me'));
